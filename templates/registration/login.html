@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Login — OkiDoki{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --auth-blue: #1a56db;
+        --auth-text: #1e293b;
+        --auth-muted: #64748b;
+        --auth-border: #e2e8f0;
+        --font-head: 'Plus Jakarta Sans', system-ui, sans-serif;
+        --font-body: 'Inter', system-ui, sans-serif;
+    }
+    body { font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+
+    .auth-page { min-height: 100vh; display: flex; }
+
+    /* ── LEFT PANEL ── */
+    .auth-left {
+        background: url("{% static 'images/hospital_bg.png' %}") center center / cover no-repeat;
+        position: relative;
+        flex: 0 0 44%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    @media (max-width: 991px) { .auth-left { display: none; } }
+    .auth-left-overlay {
+        position: absolute; inset: 0;
+        background: linear-gradient(150deg, rgba(6,14,40,.92) 0%, rgba(17,60,130,.78) 55%, rgba(8,145,178,.32) 100%);
+    }
+    .auth-left-content {
+        position: relative; z-index: 1;
+        color: #fff; text-align: left;
+        padding: 3.5rem 3rem; width: 100%;
+    }
+    .auth-left-brand {
+        display: inline-flex; align-items: center; gap: .55rem;
+        margin-bottom: 3.5rem; text-decoration: none;
+    }
+    .auth-left-brand-icon {
+        width: 40px; height: 40px;
+        background: linear-gradient(135deg, #1a56db, #0891b2);
+        border-radius: 11px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; color: #fff;
+        box-shadow: 0 4px 14px rgba(26,86,219,.5);
+    }
+    .auth-left-brand-name {
+        font-family: var(--font-head); font-size: 1.4rem;
+        font-weight: 800; letter-spacing: -.03em; color: #fff;
+    }
+    .auth-left-brand-name span {
+        background: linear-gradient(135deg, #60a5fa, #a78bfa);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .auth-left-content h2 {
+        font-family: var(--font-head); font-weight: 800;
+        font-size: 2.4rem; letter-spacing: -.03em; line-height: 1.15;
+        margin-bottom: .75rem;
+    }
+    .auth-left-content p {
+        color: rgba(255,255,255,.65); font-size: .97rem; line-height: 1.7;
+        margin-bottom: 2.5rem; max-width: 320px;
+    }
+    .auth-feature { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.1rem; }
+    .auth-feature-icon {
+        width: 42px; height: 42px; flex-shrink: 0;
+        background: rgba(255,255,255,.08);
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 11px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; color: #93c5fd;
+    }
+    .auth-feature-text strong {
+        font-family: var(--font-head); color: #fff;
+        display: block; font-size: .93rem; font-weight: 700; margin-bottom: .1rem;
+    }
+    .auth-feature-text span { color: rgba(255,255,255,.6); font-size: .82rem; line-height: 1.4; }
+
+    /* ── RIGHT PANEL ── */
+    .auth-right {
+        flex: 1; display: flex; align-items: center; justify-content: center;
+        background: #fff; padding: 2.5rem 2rem; overflow-y: auto;
+    }
+    .auth-form-wrap { width: 100%; max-width: 420px; }
+
+    /* ── LOGO ── */
+    .auth-logo {
+        display: inline-flex; align-items: center; gap: .5rem;
+        font-family: var(--font-head); font-size: 1.45rem; font-weight: 800;
+        color: var(--auth-text); letter-spacing: -.03em; text-decoration: none;
+    }
+    .auth-logo-icon {
+        width: 36px; height: 36px;
+        background: linear-gradient(135deg, #1a56db, #0891b2);
+        border-radius: 10px;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: .95rem; color: #fff;
+        box-shadow: 0 2px 10px rgba(26,86,219,.4);
+    }
+    .auth-logo-text span {
+        background: linear-gradient(135deg, #1a56db, #7c3aed);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .btn-back {
+        display: inline-flex; align-items: center; gap: .35rem;
+        font-size: .8rem; font-weight: 600; font-family: var(--font-head);
+        color: var(--auth-muted); background: #f1f5f9; border: none;
+        border-radius: 8px; padding: .38rem .85rem;
+        text-decoration: none; transition: background .2s, color .2s;
+    }
+    .btn-back:hover { background: #e2e8f0; color: var(--auth-text); }
+
+    /* ── HEADING ── */
+    .auth-heading {
+        font-family: var(--font-head); font-size: 1.85rem; font-weight: 800;
+        color: var(--auth-text); letter-spacing: -.03em; margin-bottom: .3rem;
+    }
+    .auth-sub { font-size: .88rem; color: var(--auth-muted); line-height: 1.6; }
+
+    /* ── INPUTS ── */
+    .form-label {
+        font-family: var(--font-head); font-size: .78rem; font-weight: 700;
+        color: var(--auth-text); letter-spacing: .01em; margin-bottom: .4rem;
+        display: block;
+    }
+    .input-wrap { position: relative; }
+    .input-icon {
+        position: absolute; left: .95rem; top: 50%; transform: translateY(-50%);
+        color: #94a3b8; font-size: .95rem; pointer-events: none; z-index: 2;
+        transition: color .2s;
+    }
+    .input-wrap:focus-within .input-icon { color: var(--auth-blue); }
+    .auth-input {
+        width: 100%; border: 1.5px solid var(--auth-border); border-radius: 12px;
+        padding: .78rem 1rem .78rem 2.6rem;
+        font-family: var(--font-body); font-size: .92rem;
+        color: var(--auth-text); background: #f8faff;
+        transition: border-color .2s, box-shadow .2s, background .2s; outline: none;
+    }
+    .auth-input::placeholder { color: #94a3b8; }
+    .auth-input:focus {
+        border-color: var(--auth-blue); background: #fff;
+        box-shadow: 0 0 0 3.5px rgba(26,86,219,.1);
+    }
+
+    .forgot-link {
+        font-size: .8rem; color: var(--auth-blue); text-decoration: none;
+        font-weight: 600; font-family: var(--font-head); transition: opacity .2s;
+    }
+    .forgot-link:hover { opacity: .7; }
+
+    /* ── SUBMIT ── */
+    .btn-auth-submit {
+        display: flex; align-items: center; justify-content: center; gap: .5rem;
+        width: 100%;
+        background: linear-gradient(135deg, #1a56db, #1d4ed8);
+        color: #fff; border: none; border-radius: 12px;
+        padding: .88rem 1rem;
+        font-family: var(--font-head); font-size: .97rem; font-weight: 700;
+        letter-spacing: -.01em;
+        box-shadow: 0 4px 18px rgba(26,86,219,.4);
+        transition: transform .2s, box-shadow .2s; cursor: pointer;
+    }
+    .btn-auth-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(26,86,219,.5); }
+    .btn-auth-submit:active { transform: translateY(0); }
+
+    /* ── DIVIDER ── */
+    .auth-divider {
+        display: flex; align-items: center; gap: .75rem;
+        color: #cbd5e1; font-size: .72rem; font-weight: 700;
+        letter-spacing: .1em; text-transform: uppercase; margin: 1.6rem 0;
+    }
+    .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--auth-border); }
+
+    .auth-switch { text-align: center; font-size: .88rem; color: var(--auth-muted); }
+    .auth-switch a { color: var(--auth-blue); font-weight: 700; font-family: var(--font-head); text-decoration: none; }
+    .auth-switch a:hover { text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+
+    <!-- ── LEFT PANEL ── -->
+    <div class="auth-left">
+        <div class="auth-left-overlay"></div>
+        <div class="auth-left-content">
+            <a href="{% url 'home' %}" class="auth-left-brand">
+                <div class="auth-left-brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+                <span class="auth-left-brand-name">Oki<span>Doki</span></span>
+            </a>
+            <h2>Welcome<br>Back!</h2>
+            <p>Sign in to manage your appointments and connect with your healthcare providers.</p>
+            <div>
+                <div class="auth-feature">
+                    <div class="auth-feature-icon"><i class="bi bi-calendar-check-fill"></i></div>
+                    <div class="auth-feature-text">
+                        <strong>Manage Appointments</strong>
+                        <span>View, reschedule or cancel your bookings anytime.</span>
+                    </div>
+                </div>
+                <div class="auth-feature">
+                    <div class="auth-feature-icon"><i class="bi bi-bell-fill"></i></div>
+                    <div class="auth-feature-text">
+                        <strong>Real-Time Notifications</strong>
+                        <span>Stay updated on your appointment status live.</span>
+                    </div>
+                </div>
+                <div class="auth-feature">
+                    <div class="auth-feature-icon"><i class="bi bi-shield-fill-check"></i></div>
+                    <div class="auth-feature-text">
+                        <strong>Secure &amp; Private</strong>
+                        <span>Your health data is always encrypted and protected.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── RIGHT PANEL ── -->
+    <div class="auth-right">
+        <div class="auth-form-wrap">
+
+            <div class="d-flex align-items-center justify-content-between mb-5">
+                <a href="{% url 'home' %}" class="auth-logo">
+                    <div class="auth-logo-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+                    <span class="auth-logo-text">Oki<span>Doki</span></span>
+                </a>
+                <a href="{% url 'home' %}" class="btn-back"><i class="bi bi-arrow-left"></i> Home</a>
+            </div>
+
+            <h2 class="auth-heading">Sign In</h2>
+            <p class="auth-sub mb-4">Enter your credentials to access your account.</p>
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show py-2 mb-3" role="alert" style="border-radius:10px;font-size:.87rem;">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="id_username" class="form-label">Username</label>
+                    <div class="input-wrap">
+                        <i class="bi bi-person-fill input-icon"></i>
+                        <input type="text" name="username" id="id_username"
+                               class="auth-input" placeholder="Your username" required autofocus>
+                    </div>
+                </div>
+                <div class="mb-1">
+                    <label for="id_password" class="form-label">Password</label>
+                    <div class="input-wrap">
+                        <i class="bi bi-lock-fill input-icon"></i>
+                        <input type="password" name="password" id="id_password"
+                               class="auth-input" placeholder="Your password" required>
+                    </div>
+                </div>
+                <div class="text-end mb-4 mt-2">
+                    <a href="{% url 'password_reset' %}" class="forgot-link">Forgot password?</a>
+                </div>
+                <button type="submit" class="btn-auth-submit">
+                    <i class="bi bi-box-arrow-in-right"></i> Sign In
+                </button>
+            </form>
+
+            <div class="auth-divider">or</div>
+            <p class="auth-switch mb-0">
+                Don't have an account? <a href="{% url 'register' %}">Create one &rarr;</a>
+            </p>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

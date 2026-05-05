@@ -1,0 +1,443 @@
+# ============================================================
+# appointments/models.py — Database Models
+# ============================================================
+# Models:
+#   1. Profile         — Extends Django User (role: Doctor/Patient/Admin)
+#   2. Hospital        — Hospital / Clinic with location (lat/lng)
+#   3. Specialization  — Medical specialization categories
+#   4. Symptom         — Symptoms linked to specializations
+#   5. Doctor          — Doctor-specific data (Pediatrics / OB-GYN)
+#   6. Patient         — Patient-specific data
+#   7. Availability    — Doctor schedule slots
+#   8. Appointment     — Booking between patient & doctor
+#   9. Payment         — Payment record with reference number
+# ============================================================
+
+import uuid
+from django.db import models
+from django.contrib.auth.models import User
+from django.utils import timezone
+
+
+# --------------------------------------------------
+# ROLE CHOICES
+# --------------------------------------------------
+ROLE_CHOICES = (
+    ('doctor', 'Doctor'),
+    ('patient', 'Patient'),
+    ('admin', 'Admin'),
+)
+
+# --------------------------------------------------
+# SPECIALIZATION CHOICES
+# --------------------------------------------------
+SPECIALIZATION_CHOICES = (
+    ('Pediatrics', 'Pediatrics'),
+    ('Obstetrics and Gynecology', 'Obstetrics and Gynecology'),
+    ('Dentistry', 'Dentistry'),
+)
+
+# --------------------------------------------------
+# APPOINTMENT STATUS CHOICES
+# Pending → Confirmed → In Progress → Done | Cancelled
+# --------------------------------------------------
+APPOINTMENT_STATUS = (
+    ('pending', 'Pending'),
+    ('confirmed', 'Confirmed'),
+    ('in_progress', 'In Progress'),
+    ('done', 'Done'),
+    ('cancelled', 'Cancelled'),
+)
+
+# --------------------------------------------------
+# PAYMENT STATUS CHOICES
+# --------------------------------------------------
+PAYMENT_STATUS = (
+    ('unpaid', 'Unpaid'),
+    ('paid', 'Paid'),
+)
+
+
+# ============================================================
+# 1. PROFILE MODEL — Extends the Django User
+# ============================================================
+class Profile(models.Model):
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='profile',
+    )
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.get_full_name()} ({self.get_role_display()})"
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+# ============================================================
+# 2. HOSPITAL MODEL — Clinics with map coordinates
+# ============================================================
+class Hospital(models.Model):
+    name = models.CharField(max_length=200)
+    address = models.TextField()
+    city = models.CharField(max_length=100, blank=True, null=True)
+    latitude = models.DecimalField(
+        max_digits=12, decimal_places=7, blank=True, null=True,
+        help_text='GPS latitude (e.g. 13.4115)',
+    )
+    longitude = models.DecimalField(
+        max_digits=12, decimal_places=7, blank=True, null=True,
+        help_text='GPS longitude (e.g. 121.1804)',
+    )
+    phone = models.CharField(max_length=30, blank=True, null=True)
+    map_embed_url = models.URLField(
+        blank=True, null=True,
+        help_text='Google Maps embed src URL (from Share → Embed a map → copy the src value only)',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} — {self.city or self.address[:40]}"
+
+    class Meta:
+        ordering = ['name']
+
+
+# ============================================================
+# 3. SPECIALIZATION MODEL
+# ============================================================
+class Specialization(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+
+
+# ============================================================
+# 4. SYMPTOM MODEL
+# ============================================================
+class Symptom(models.Model):
+    name = models.CharField(max_length=150, unique=True)
+    description = models.TextField(blank=True, null=True)
+    specializations = models.ManyToManyField(
+        Specialization, related_name='symptoms',
+    )
+
+    def __str__(self):
+        specs = ', '.join(s.name for s in self.specializations.all()[:3])
+        return f"{self.name} → {specs}"
+
+    class Meta:
+        ordering = ['name']
+
+
+# ============================================================
+# 5. DOCTOR MODEL
+# ============================================================
+class Doctor(models.Model):
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='doctor_profile',
+    )
+    specialization = models.CharField(
+        max_length=100, choices=SPECIALIZATION_CHOICES, default='Pediatrics',
+    )
+    specialization_category = models.ForeignKey(
+        Specialization, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='doctors',
+    )
+    hospital = models.ForeignKey(
+        Hospital, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='doctors',
+    )
+    license_number = models.CharField(max_length=50, blank=True, null=True)
+    consultation_fee = models.DecimalField(
+        max_digits=10, decimal_places=2, default=500.00,
+    )
+    is_approved = models.BooleanField(default=False)
+    approved_at = models.DateTimeField(blank=True, null=True)
+
+    # --- Professional Background ---
+    years_of_experience = models.PositiveIntegerField(blank=True, null=True)
+    medical_school = models.CharField(max_length=200, blank=True, null=True)
+    year_graduated = models.PositiveIntegerField(blank=True, null=True)
+
+    # --- Document Uploads ---
+    license_certificate = models.FileField(
+        upload_to='doctor_docs/license/', blank=True, null=True,
+        help_text='Medical License Certificate (PDF, JPG, PNG).',
+    )
+    professional_id_doc = models.FileField(
+        upload_to='doctor_docs/professional_id/', blank=True, null=True,
+        help_text='Professional ID (PDF, JPG, PNG).',
+    )
+    board_certification = models.FileField(
+        upload_to='doctor_docs/board_cert/', blank=True, null=True,
+        help_text='Board Certification (PDF, JPG, PNG).',
+    )
+    government_id_doc = models.FileField(
+        upload_to='doctor_docs/government_id/', blank=True, null=True,
+        help_text='Government ID (PDF, JPG, PNG).',
+    )
+
+    # --- Online Presence ---
+    linkedin_url = models.URLField(
+        blank=True, null=True,
+        help_text='LinkedIn profile URL (e.g. https://www.linkedin.com/in/yourname)',
+    )
+
+    def __str__(self):
+        tag = "Approved" if self.is_approved else "Pending"
+        return f"Dr. {self.user.get_full_name()} — {self.specialization} [{tag}]"
+
+    class Meta:
+        ordering = ['user__last_name']
+
+
+# ============================================================
+# 6. PATIENT MODEL
+# ============================================================
+class Patient(models.Model):
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='patient_profile',
+    )
+    date_of_birth = models.DateField(blank=True, null=True)
+    gender = models.CharField(
+        max_length=10,
+        choices=(('male', 'Male'), ('female', 'Female'), ('other', 'Other')),
+        blank=True, null=True,
+    )
+    emergency_contact = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return f"Patient: {self.user.get_full_name()}"
+
+    class Meta:
+        ordering = ['user__last_name']
+
+
+# ============================================================
+# 7. AVAILABILITY MODEL — Doctor Schedule Slots
+# ============================================================
+AVAILABILITY_STATUS_CHOICES = (
+    ('accepting', 'Accepting Patients'),
+    ('paused', 'Paused'),
+)
+
+
+class Availability(models.Model):
+    doctor = models.ForeignKey(
+        Doctor, on_delete=models.CASCADE, related_name='availabilities',
+    )
+    # Location for this specific schedule slot (supports multi-location doctors)
+    hospital = models.ForeignKey(
+        Hospital, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='availabilities',
+        help_text='Location for this slot (leave blank to inherit doctor\'s primary clinic).',
+    )
+    date = models.DateField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    is_available = models.BooleanField(default=True)
+    max_patients = models.PositiveIntegerField(default=20)
+    # Grab-like pause/accept toggle — doctor controls this per slot
+    accepting_status = models.CharField(
+        max_length=10, choices=AVAILABILITY_STATUS_CHOICES, default='accepting',
+        help_text='Pause to temporarily stop accepting patients at this location.',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def booked_count(self):
+        return self.appointments.exclude(status='cancelled').count()
+
+    @property
+    def is_fully_booked(self):
+        return self.booked_count >= self.max_patients
+
+    @property
+    def effective_hospital(self):
+        """Returns slot's hospital, falling back to doctor's primary clinic."""
+        return self.hospital or self.doctor.hospital
+
+    @property
+    def is_paused(self):
+        return self.accepting_status == 'paused'
+
+    def __str__(self):
+        loc = self.hospital.name if self.hospital else 'Primary'
+        return (
+            f"Dr. {self.doctor.user.get_full_name()} | "
+            f"{self.date} {self.start_time}–{self.end_time} @ {loc}"
+        )
+
+    class Meta:
+        verbose_name_plural = 'Availabilities'
+        ordering = ['date', 'start_time']
+        unique_together = ('doctor', 'hospital', 'date', 'start_time', 'end_time')
+
+
+# ============================================================
+# 8. APPOINTMENT MODEL
+# ============================================================
+class Appointment(models.Model):
+    patient = models.ForeignKey(
+        Patient, on_delete=models.CASCADE, related_name='appointments',
+    )
+    doctor = models.ForeignKey(
+        Doctor, on_delete=models.CASCADE, related_name='appointments',
+    )
+    availability = models.ForeignKey(
+        Availability, on_delete=models.CASCADE, related_name='appointments',
+    )
+    date = models.DateField()
+    appointment_time = models.TimeField(
+        blank=True, null=True,
+        help_text='Specific time slot for the appointment (minute-by-minute)'
+    )
+    status = models.CharField(
+        max_length=15, choices=APPOINTMENT_STATUS, default='pending',
+    )
+    queue_number = models.PositiveIntegerField(blank=True, null=True)
+    reason = models.TextField(blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
+    payment_status = models.CharField(
+        max_length=10, choices=PAYMENT_STATUS, default='unpaid',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        # Auto-generate queue number when confirmed
+        # Queue numbers are doctor-specific and ordered by appointment time
+        if self.status == 'confirmed' and self.queue_number is None:
+            # Get all confirmed appointments for this doctor on this date,
+            # ordered by appointment_time (specific time slot)
+            confirmed_for_day = Appointment.objects.filter(
+                doctor=self.doctor, 
+                date=self.date,
+                status='confirmed',
+                queue_number__isnull=False,
+            ).order_by('appointment_time')
+            
+            # Count appointments before this one's time
+            if self.appointment_time:
+                appointments_before = confirmed_for_day.filter(
+                    appointment_time__lt=self.appointment_time
+                ).count()
+                self.queue_number = appointments_before + 1
+            else:
+                # Fallback: just get the next number
+                last = confirmed_for_day.last()
+                self.queue_number = (last.queue_number + 1) if last else 1
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return (
+            f"#{self.pk} | {self.patient.user.get_full_name()} → "
+            f"Dr. {self.doctor.user.get_full_name()} | "
+            f"{self.date} Q#{self.queue_number or '—'} | {self.get_status_display()}"
+        )
+
+    class Meta:
+        ordering = ['date', 'appointment_time']
+        unique_together = ('doctor', 'date', 'appointment_time')
+
+
+# ============================================================
+# 9. PAYMENT MODEL (with reference number)
+# ============================================================
+class Payment(models.Model):
+    appointment = models.OneToOneField(
+        Appointment, on_delete=models.CASCADE, related_name='payment',
+    )
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(
+        max_length=10, choices=PAYMENT_STATUS, default='unpaid',
+    )
+    reference_number = models.CharField(
+        max_length=20, unique=True, blank=True,
+    )
+    date_paid = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.reference_number:
+            self.reference_number = f"PAY-{uuid.uuid4().hex[:10].upper()}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.reference_number} | ₱{self.amount} | {self.get_status_display()}"
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+# ============================================================
+# 10. NOTIFICATION MODEL
+# ============================================================
+NOTIFICATION_TYPES = (
+    ('appointment_booked',    'Appointment Booked'),
+    ('appointment_confirmed', 'Appointment Confirmed'),
+    ('appointment_cancelled', 'Appointment Cancelled'),
+    ('appointment_done',      'Appointment Completed'),
+    ('doctor_approved',       'Doctor Approved'),
+    ('doctor_revoked',        'Doctor Approval Revoked'),
+    ('payment_received',      'Payment Received'),
+    ('queue_update',          'Queue Update'),
+    ('general',               'General'),
+)
+
+
+class Notification(models.Model):
+    user        = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='notifications',
+    )
+    notif_type  = models.CharField(
+        max_length=40, choices=NOTIFICATION_TYPES, default='general',
+    )
+    title       = models.CharField(max_length=200)
+    message     = models.TextField()
+    is_read     = models.BooleanField(default=False)
+    created_at  = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"[{'READ' if self.is_read else 'UNREAD'}] {self.user.username}: {self.title}"
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+# ============================================================
+# 11. CONTACT MESSAGE MODEL
+# ============================================================
+class ContactMessage(models.Model):
+    TOPIC_CHOICES = (
+        ('appointment', 'Appointment Inquiry'),
+        ('registration', 'Doctor Registration'),
+        ('support', 'Technical Support'),
+        ('feedback', 'Feedback'),
+        ('other', 'Other'),
+    )
+    
+    full_name = models.CharField(max_length=150)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    topic = models.CharField(max_length=20, choices=TOPIC_CHOICES, default='other')
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        status = "READ" if self.is_read else "UNREAD"
+        return f"[{status}] {self.full_name} — {self.get_topic_display()}"
+    
+    class Meta:
+        ordering = ['-created_at']

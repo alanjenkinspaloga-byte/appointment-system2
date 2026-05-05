@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% block title %}Symptom Search{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  #symptomMap { height: 280px; border-radius: 0 0 18px 18px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="row g-4">
+      <div class="col-md-3 col-lg-2">
+        <div class="dash-sidebar-card">
+          <div class="dash-sidebar-header">
+            <div class="dash-sidebar-badge" style="background:linear-gradient(135deg,#059669,#10b981);"><i class="bi bi-heart-pulse"></i></div>
+            <div>
+              <div class="dash-sidebar-role">Patient</div>
+              <div class="dash-sidebar-uname">{{ request.user.get_full_name }}</div>
+            </div>
+          </div>
+          {% include 'patient/sidebar.html' %}
+        </div>
+      </div>
+      <div class="col-md-9 col-lg-10">
+        <div class="mb-4">
+          <h1 class="dash-title" style="margin-bottom:.2rem;"><span>Symptom</span> Search</h1>
+          <p class="dash-subtitle">Find the right specialist by describing your symptoms. Supports English and Filipino.</p>
+        </div>
+
+        <!-- Search Form -->
+        <div class="dash-card mb-4">
+          <div class="dash-card-body">
+            <form method="get">
+              <div class="row g-2 align-items-end">
+                <div class="col-md-7">{{ form.query }}</div>
+                <div class="col-md-3">{{ form.city }}</div>
+                <div class="col-md-2">
+                  <button class="btn-dash-primary w-100" type="submit" style="justify-content:center;">
+                    <i class="bi bi-search"></i> Search
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Pre-search hints -->
+        {% if not results %}
+        <div class="dash-card mb-4">
+          <div class="dash-card-header"><i class="bi bi-lightbulb hi"></i> Try searching for:</div>
+          <div class="dash-card-body">
+            <p class="mb-2" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:.85rem;font-weight:700;color:#2563eb;">Pediatrics</p>
+            <div class="mb-3 d-flex flex-wrap gap-2">
+              <span class="spec-pill spec-peds">Fever</span>
+              <span class="spec-pill spec-peds">Cough</span>
+              <span class="spec-pill spec-peds">Rashes</span>
+              <span class="spec-pill spec-peds">Ear pain</span>
+              <span class="spec-pill spec-peds">Vaccination</span>
+            </div>
+            <p class="mb-2" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:.85rem;font-weight:700;color:#e11d48;">OB-GYN</p>
+            <div class="d-flex flex-wrap gap-2">
+              <span class="spec-pill spec-obgyn">Pregnancy</span>
+              <span class="spec-pill spec-obgyn">Cramps</span>
+              <span class="spec-pill spec-obgyn">Missed period</span>
+              <span class="spec-pill spec-obgyn">Prenatal</span>
+              <span class="spec-pill spec-obgyn">Breast lump</span>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Results -->
+        {% if results %}
+
+        {% if translated_query %}
+        <div class="dash-alert-info mb-3">
+          <i class="bi bi-translate me-1"></i>
+          Translated from <strong>{{ language_name }}</strong>:
+          "{{ query }}" → "<strong>{{ translated_query }}</strong>"
+        </div>
+        {% endif %}
+
+        {% if matched_symptoms %}
+        <div class="dash-card mb-4">
+          <div class="dash-card-header"><i class="bi bi-check-circle hi"></i> Matched Symptoms ({{ matched_symptoms|length }})</div>
+          <div class="dash-card-body d-flex flex-wrap gap-2">
+            {% for symptom in matched_symptoms %}
+            <span class="bs bs-confirmed">{{ symptom.name }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if matched_specializations %}
+        <div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
+          <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:.85rem;color:#64748b;">Related specializations:</span>
+          {% for spec in matched_specializations %}
+          <span class="spec-pill spec-default">{{ spec.name }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if doctors %}
+        <!-- Map -->
+        <div class="dash-card mb-4" style="overflow:hidden;padding:0;">
+          <div id="symptomMap"></div>
+        </div>
+
+        <!-- Doctor Results -->
+        <div class="mb-3">
+          <h2 class="dash-title mb-0" style="font-size:1.15rem;"><span>{{ doctors|length }}</span> Doctor{{ doctors|length|pluralize }} Found</h2>
+        </div>
+        <div class="row g-3">
+          {% for doctor in doctors %}
+          <div class="col-md-6 col-xl-4">
+            <div class="dr-card">
+              <div class="dr-card-body">
+                <div class="dr-name"><i class="bi bi-person-badge me-1" style="color:var(--db);"></i>Dr. {{ doctor.user.get_full_name }}</div>
+                <div class="dr-meta mt-1">
+                  {% if 'Pediatrics' in doctor.specialization %}
+                    <span class="spec-pill spec-peds">{{ doctor.specialization }}</span>
+                  {% elif 'Obstet' in doctor.specialization or 'Gynecol' in doctor.specialization %}
+                    <span class="spec-pill spec-obgyn">{{ doctor.specialization }}</span>
+                  {% elif 'Dent' in doctor.specialization %}
+                    <span class="spec-pill spec-dent">{{ doctor.specialization }}</span>
+                  {% else %}
+                    <span class="spec-pill spec-default">{{ doctor.specialization }}</span>
+                  {% endif %}
+                </div>
+                {% if doctor.hospital %}
+                <p class="dr-meta mt-2 mb-0"><i class="bi bi-hospital me-1"></i> {{ doctor.hospital.name }}</p>
+                <p class="dr-meta mb-0"><i class="bi bi-geo-alt me-1"></i> {{ doctor.hospital.address }}</p>
+                {% endif %}
+                <p class="mt-2 mb-0" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;color:var(--dn);font-size:.95rem;">
+                  <i class="bi bi-cash me-1" style="color:#059669;"></i>&#8369;{{ doctor.consultation_fee }} / visit
+                </p>
+              </div>
+              <div class="dr-card-footer">
+                <a href="{% url 'doctor_schedule' doctor.pk %}" class="btn-dash-primary" style="flex:1;justify-content:center;"><i class="bi bi-calendar-check"></i> Schedule</a>
+                {% if doctor.hospital and doctor.hospital.latitude and doctor.hospital.longitude %}
+                <a href="https://www.google.com/maps?q={{ doctor.hospital.latitude }},{{ doctor.hospital.longitude }}"
+                   target="_blank" class="btn-mini-green"><i class="bi bi-map"></i></a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="dash-card">
+          <div class="dash-empty">
+            <i class="bi bi-exclamation-triangle"></i>
+            <p>No doctors found for "{{ query }}". Try a different symptom.</p>
+          </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if results and doctors %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function() {
+    const doctors = {{ doctors_json|safe }};
+    const map = L.map('symptomMap').setView([13.41, 121.18], 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    const bounds = [];
+    doctors.forEach(doc => {
+        if (doc.lat && doc.lng) {
+            L.marker([doc.lat, doc.lng]).addTo(map)
+                .bindPopup(
+                    `<strong>${doc.name}</strong><br>${doc.specialization}<br>` +
+                    `<em>${doc.hospital_name}</em><br>` +
+                    `<a href="/patient/doctors/${doc.pk}/schedule/">View Schedule</a>`
+                );
+            bounds.push([doc.lat, doc.lng]);
+        }
+    });
+    if (bounds.length) map.fitBounds(bounds, { padding: [30, 30] });
+})();
+</script>
+{% endif %}
+{% endblock %}

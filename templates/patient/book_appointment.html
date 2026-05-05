@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% load math_filters %}
+{% block title %}Book Appointment{% endblock %}
+
+{% block content %}
+<style>
+    @media (max-width: 576px) {
+        .container-fluid { padding: 1rem 0.75rem; }
+        h2 { font-size: 1.25rem; margin-bottom: 1.5rem; }
+        .card { border-radius: 12px; margin-bottom: 1rem; }
+        .card-body { padding: 1rem; }
+        .form-label { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .form-control, .form-select { font-size: 16px; padding: 0.75rem; border-radius: 8px; }
+    }
+    
+    h2 {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 800;
+        font-size: 1.65rem;
+        color: #0a1628;
+        line-height: 1.2;
+    }
+
+    .time-slot-btn {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 2px solid #e2e8f0;
+        background: #fff;
+        color: #1e293b;
+        border-radius: 10px;
+        white-space: nowrap;
+        min-height: 44px;
+    }
+
+    .time-slot-btn:hover:not(:disabled) {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .time-slot-btn.selected {
+        background-color: #1a56db;
+        color: white;
+        border-color: #1a56db;
+    }
+
+    .time-slot-btn:disabled {
+        background-color: #f1f5f9;
+        color: #94a3b8;
+        cursor: not-allowed;
+        border-color: #cbd5e1;
+    }
+
+    @media (max-width: 576px) {
+        .time-slot-btn {
+            padding: 8px 10px;
+            font-size: 0.75rem;
+            min-height: 40px;
+        }
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4"><i class="bi bi-calendar-plus me-2"></i>Book Appointment</h2>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header" style="background: linear-gradient(135deg, var(--blue-primary), var(--blue-light)); color: white; font-weight: 700; border-radius: 20px 20px 0 0;">Appointment Details</div>
+                <div class="card-body">
+                    <p><strong>Doctor:</strong> Dr. {{ availability.doctor.user.get_full_name }}</p>
+                    <p><strong>Specialization:</strong> {{ availability.doctor.specialization }}</p>
+                    <p><strong>Date:</strong> {{ availability.date }}</p>
+                    <p><strong>Available Hours:</strong> {{ availability.start_time|time:"H:i" }} – {{ availability.end_time|time:"H:i" }}</p>
+                    {% if availability.hospital %}
+                    <p><strong>Location:</strong> {{ availability.hospital.name }}, {{ availability.hospital.city }}</p>
+                    {% elif availability.doctor.hospital %}
+                    <p><strong>Location:</strong> {{ availability.doctor.hospital.name }}, {{
+                        availability.doctor.hospital.city }}</p>
+                    {% endif %}
+                    <p><strong>Consultation Fee:</strong> ₱{{ availability.doctor.consultation_fee }}</p>
+                </div>
+            </div>
+
+            <!-- Time Slot Selection -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header" style="background: linear-gradient(135deg, var(--blue-primary), var(--blue-light)); color: white; font-weight: 700; border-radius: 20px 20px 0 0;">Select Time & Confirm</div>
+                <div class="card-body">
+                    <!-- Booking Form -->
+                    <form method="post" id="bookingForm">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-calendar-event me-2" style="color: var(--blue-primary);"></i>
+                                Time Slot:
+                                <span class="badge bg-primary" id="selectedTimeDisplay">Not selected</span>
+                            </label>
+                            <input type="hidden" name="appointment_time" id="id_appointment_time_hidden" value="">
+                            {{ form.appointment_time }}
+                            <button type="button" class="btn btn-primary btn-lg mt-2 w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#timeSlotsModal" style="border-radius: 10px; font-weight: 600;">
+                                <i class="bi bi-clock me-2"></i>Choose Time Slot
+                            </button>
+                            {% for error in form.appointment_time.errors %}
+                            <div class="text-danger small"><i class="bi bi-exclamation-triangle me-1"></i>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        {% for field in form %}
+                        {% if field.name != 'appointment_time' %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+
+                        <div class="d-grid gap-2 d-sm-flex">
+                            <button type="submit" class="btn btn-success btn-lg" id="submitBtn" disabled>
+                                <i class="bi bi-check-lg me-1"></i>Confirm
+                            </button>
+                            <a href="{% url 'doctor_schedule' availability.doctor.pk %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-arrow-left me-1"></i>Back to Doctor
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Info Panel -->
+            <div class="card shadow-sm border-info">
+                <div class="card-header" style="background: var(--teal); color: white; font-weight: 700; border-radius: 20px 20px 0 0;">
+                    <i class="bi bi-shield-check me-2"></i>How It Works
+                </div>
+                <div class="card-body small">
+                    <ul class="mb-0">
+                        <li>Select a time slot within doctor's office hours</li>
+                        <li>Each doctor has independent queues</li>
+                        <li>Queue position based on appointment time (earlier = priority)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="timeSlotsModal" tabindex="-1" aria-labelledby="timeSlotsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--blue-primary), var(--blue-light)); color: white; border: none;">
+                <h5 class="modal-title" id="timeSlotsLabel">
+                    <i class="bi bi-clock me-2"></i>Available Time Slots
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="availableSlotsContainer" class="available-times-grid">
+                    {% for time in available_times %}
+                    <button type="button" class="time-slot-btn" data-time="{{ time }}" title="Available at {{ time|time:'H:i' }}">
+                        {{ time|time:"H:i" }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    h2 {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 800;
+        font-size: 1.65rem;
+        color: #0a1628;
+        line-height: 1.2;
+    }
+
+    .time-slot-btn {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 2px solid #e2e8f0;
+        background: #fff;
+        color: #1e293b;
+        border-radius: 10px;
+        white-space: nowrap;
+    }
+
+    .time-slot-btn:hover:not(:disabled) {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .time-slot-btn.selected {
+        background-color: #1a56db;
+        color: white;
+        border-color: #1a56db;
+        box-shadow: 0 6px 20px rgba(26, 86, 219, 0.4);
+        font-weight: 700;
+    }
+
+    .available-times-grid {
+        max-height: 350px;
+        overflow-y: auto;
+        padding: 16px;
+        border: 2px solid #93c5fd;
+        border-radius: 15px;
+        background-color: #f0f9ff;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 12px;
+    }
+
+    #availableSlotsContainer {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 12px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const timeSlotBtns = document.querySelectorAll('.time-slot-btn');
+        const selectedTimeDisplay = document.getElementById('selectedTimeDisplay');
+        const hiddenTimeInput = document.getElementById('id_appointment_time_hidden');
+        const regularTimeInput = document.getElementById('id_appointment_time');
+        const submitBtn = document.getElementById('submitBtn');
+        const timeSlotsModal = document.getElementById('timeSlotsModal');
+
+        // Function to set selected time
+        function setSelectedTime(btn) {
+            // Remove previous selection
+            timeSlotBtns.forEach(b => b.classList.remove('selected'));
+
+            // Mark as selected
+            btn.classList.add('selected');
+
+            const timeValue = btn.getAttribute('data-time');
+            const [hours, minutes] = timeValue.split(':');
+            const displayTime = `${hours}:${minutes}`;
+
+            // Update inputs
+            hiddenTimeInput.value = timeValue;
+            regularTimeInput.value = displayTime;
+
+            // Update display
+            selectedTimeDisplay.textContent = displayTime;
+            selectedTimeDisplay.classList.remove('bg-primary');
+            selectedTimeDisplay.classList.add('bg-success');
+
+            // Enable submit button
+            submitBtn.disabled = false;
+
+            // Close modal after selection
+            const modal = bootstrap.Modal.getInstance(timeSlotsModal);
+            if (modal) {
+                modal.hide();
+            }
+        }
+
+        // Add click handlers to time slot buttons
+        timeSlotBtns.forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                setSelectedTime(this);
+            });
+        });
+
+        // Restore selection if form was re-rendered with errors
+        const existingValue = regularTimeInput.value;
+        if (existingValue) {
+            const [hours, minutes] = existingValue.split(':');
+            const targetTime = `${hours}:${minutes}:00`;
+
+            timeSlotBtns.forEach(btn => {
+                if (btn.getAttribute('data-time') === targetTime ||
+                    btn.getAttribute('data-time').startsWith(`${hours}:${minutes}`)) {
+                    setSelectedTime(btn);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

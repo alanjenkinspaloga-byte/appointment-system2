@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Manage Hospitals{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="row g-4">
+      <div class="col-md-3 col-lg-2">
+        <div class="dash-sidebar-card">
+          <div class="dash-sidebar-header">
+            <div class="dash-sidebar-badge" style="background:linear-gradient(135deg,#1e3a5f,#2563eb);"><i class="bi bi-shield-lock"></i></div>
+            <div>
+              <div class="dash-sidebar-role">Admin</div>
+              <div class="dash-sidebar-uname">{{ request.user.get_full_name }}</div>
+            </div>
+          </div>
+          {% include 'admin_panel/sidebar.html' %}
+        </div>
+      </div>
+      <div class="col-md-9 col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+          <div>
+            <h1 class="dash-title mb-0">Manage <span>Hospitals</span></h1>
+            <p class="dash-subtitle">Add, edit, or remove hospital and clinic locations.</p>
+          </div>
+          <a href="{% url 'admin_hospital_create' %}" class="btn-dash-primary"><i class="bi bi-plus-lg"></i> Add Hospital</a>
+        </div>
+
+        {% if hospitals %}
+        <div class="row g-3">
+          {% for hospital in hospitals %}
+          <div class="col-md-6 col-xl-4">
+            <div class="dr-card">
+              <div class="dr-card-body">
+                <div class="dr-name"><i class="bi bi-hospital me-1" style="color:var(--db);"></i>{{ hospital.name }}</div>
+                <p class="dr-meta mt-1 mb-0"><i class="bi bi-geo-alt me-1"></i> {{ hospital.address }}</p>
+                {% if hospital.city %}<p class="dr-meta mb-0"><i class="bi bi-building me-1"></i> {{ hospital.city }}</p>{% endif %}
+                {% if hospital.phone %}<p class="dr-meta mb-0"><i class="bi bi-telephone me-1"></i> {{ hospital.phone }}</p>{% endif %}
+                {% if hospital.latitude and hospital.longitude %}
+                <p class="dr-meta mb-0"><i class="bi bi-pin-map me-1" style="color:#059669;"></i>{{ hospital.latitude }}, {{ hospital.longitude }}</p>
+                {% endif %}
+                <p class="dr-meta mt-2 mb-0"><i class="bi bi-people me-1"></i> {{ hospital.doctor_count }} doctor{{ hospital.doctor_count|pluralize }}</p>
+              </div>
+              <div class="dr-card-footer">
+                <a href="{% url 'admin_hospital_edit' hospital.pk %}" class="btn-mini" style="flex:1;justify-content:center;"><i class="bi bi-pencil"></i> Edit</a>
+                <form method="post" action="{% url 'admin_hospital_delete' hospital.pk %}" class="d-inline" onsubmit="return confirm('Delete this hospital?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-mini-red"><i class="bi bi-trash"></i></button>
+                </form>
+                {% if hospital.latitude and hospital.longitude %}
+                <a href="https://www.google.com/maps?q={{ hospital.latitude }},{{ hospital.longitude }}" target="_blank" class="btn-mini-green"><i class="bi bi-map"></i></a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="dash-card">
+          <div class="dash-empty"><i class="bi bi-hospital"></i><p>No hospitals added yet. <a href="{% url 'admin_hospital_create' %}">Add one now.</a></p></div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
