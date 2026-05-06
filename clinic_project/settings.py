@@ -24,7 +24,9 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me-in-producti
 
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = [host.strip() for host in config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')]
+# Parse ALLOWED_HOSTS from environment, with fallback that includes Render domain
+_allowed_hosts_env = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,appointment-system2.onrender.com,digitalonlineclinicscheduling.site')
+ALLOWED_HOSTS = [host.strip() for host in _allowed_hosts_env.split(',')]
 
 # --------------------------------------------------
 # INSTALLED APPS
