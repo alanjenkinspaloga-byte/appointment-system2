@@ -107,6 +107,24 @@
           <p class="dash-subtitle"><i class="bi bi-calendar3 me-1"></i>Here's your clinic overview for today.</p>
         </div>
 
+        <!-- Google Calendar Integration Alert -->
+        {% if not doctor.is_google_calendar_connected %}
+        <div class="dash-alert-warn" style="background:#e0e7ff;border-color:#c7d2fe;color:#312e81;">
+          <i class="bi bi-google" style="color:#4f46e5;"></i>
+          <div>
+            <strong>Enable Google Calendar Integration:</strong> Connect your Google Calendar to enable automatic Google Meet links for online consultations. 
+            <a href="{% url 'google_oauth_authorize' %}" class="btn-mini" style="margin-top:0.5rem;">Connect Now</a>
+          </div>
+        </div>
+        {% else %}
+        <div class="dash-alert-warn" style="background:#dcfce7;border-color:#bbf7d0;color:#14532d;">
+          <i class="bi bi-check-circle" style="color:#059669;"></i>
+          <div>
+            <strong>Google Calendar Connected:</strong> Online consultation appointments will automatically create Google Meet video call links.
+          </div>
+        </div>
+        {% endif %}
+
         <!-- Stats -->
         <div class="row g-3 mb-4">
           <div class="col-sm-6 col-xl-3">

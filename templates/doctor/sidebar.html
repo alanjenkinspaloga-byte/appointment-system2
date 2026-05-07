@@ -20,6 +20,25 @@
        class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'doctor_history' %}active{% endif %}">
         <i class="bi bi-clock-history me-2"></i> History
     </a>
+    
+    <!-- Google Calendar Integration Section -->
+    <div class="list-group-item">
+        <h6 class="mb-2 text-muted text-uppercase font-weight-bold" style="font-size: 0.75rem;">
+            <i class="bi bi-calendar-event me-1"></i>Online Consultations
+        </h6>
+    </div>
+    
+    {% if user.doctor_profile.is_google_calendar_connected %}
+        <a href="#" class="list-group-item list-group-item-action small d-flex justify-content-between align-items-center" title="Google Calendar Connected">
+            <span><i class="bi bi-check-circle-fill me-2 text-success"></i>Meet Enabled</span>
+            <span class="badge bg-success">On</span>
+        </a>
+    {% else %}
+        <a href="{% url 'google_oauth_authorize' %}" class="list-group-item list-group-item-action small" title="Connect Google Calendar for online consultations">
+            <i class="bi bi-google me-2"></i>Enable Google Meet
+        </a>
+    {% endif %}
+    
     <a href="{% url 'doctor_settings' %}"
        class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'doctor_settings' %}active{% endif %}">
         <i class="bi bi-gear me-2"></i> Clinic Settings

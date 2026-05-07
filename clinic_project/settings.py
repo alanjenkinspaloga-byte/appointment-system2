@@ -78,6 +78,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'appointments.context_processors.notifications',
+                'appointments.context_processors.google_calendar_context',
             ],
         },
     },
@@ -147,6 +148,27 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/login/'              # Where to redirect if not logged in
 LOGIN_REDIRECT_URL = '/dashboard/' # Where to go after successful login
 LOGOUT_REDIRECT_URL = '/login/'    # Where to go after logout
+
+# ============================================================
+# GOOGLE CALENDAR API CONFIGURATION
+# ============================================================
+GOOGLE_OAUTH_CREDENTIALS_FILE = config(
+    'GOOGLE_OAUTH_CREDENTIALS_FILE',
+    default=str(BASE_DIR / 'google_oauth_credentials.json')
+)
+
+GOOGLE_CALENDAR_SCOPES = [
+    'https://www.googleapis.com/auth/calendar.events',
+]
+
+# Google Meet conference settings
+GOOGLE_MEET_CONFIG = {
+    'enabled': True,
+    'conference_solution': 'hangoutsMeet',
+    'duration_minutes': 30,
+    'time_zone': TIME_ZONE,
+}
+
 
 # --------------------------------------------------
 # EMAIL — console backend for development

@@ -193,6 +193,16 @@ class Doctor(models.Model):
         help_text='LinkedIn profile URL (e.g. https://www.linkedin.com/in/yourname)',
     )
 
+    # --- Google Calendar Integration ---
+    is_google_calendar_connected = models.BooleanField(
+        default=False,
+        help_text='Whether the doctor has connected their Google Calendar account',
+    )
+    google_calendar_token = models.TextField(
+        blank=True, null=True,
+        help_text='Encrypted Google OAuth 2.0 token for calendar access',
+    )
+
     def __str__(self):
         tag = "Approved" if self.is_approved else "Pending"
         return f"Dr. {self.user.get_full_name()} — {self.specialization} [{tag}]"
@@ -311,6 +321,21 @@ class Appointment(models.Model):
     payment_status = models.CharField(
         max_length=10, choices=PAYMENT_STATUS, default='unpaid',
     )
+
+    # --- Google Calendar & Meet Integration ---
+    is_online_consultation = models.BooleanField(
+        default=False,
+        help_text='Whether this is an online consultation with Google Meet',
+    )
+    google_meet_link = models.URLField(
+        blank=True, null=True,
+        help_text='Google Meet link for the online consultation',
+    )
+    google_calendar_event_id = models.CharField(
+        max_length=255, blank=True, null=True,
+        help_text='Google Calendar event ID for this appointment',
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

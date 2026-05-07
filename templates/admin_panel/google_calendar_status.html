@@ -1,0 +1,78 @@
+<!-- Admin Panel Google Calendar Status Display -->
+<!-- Include in admin_panel/doctor_list.html and admin_panel/doctor_review.html -->
+
+{% load static %}
+
+<div class="card border-info mb-3">
+    <div class="card-header bg-info text-white">
+        <h6 class="mb-0">
+            <i class="bi bi-calendar-check mr-2"></i>Google Calendar Integration Status
+        </h6>
+    </div>
+    <div class="card-body">
+        {% if doctor.is_google_calendar_connected %}
+            <div class="alert alert-success mb-3">
+                <i class="bi bi-check-circle mr-2"></i>
+                <strong>Connected</strong>
+                <p class="small mt-2 mb-0">
+                    This doctor has connected their Google Calendar. Online consultation appointments 
+                    will automatically create Google Meet links.
+                </p>
+            </div>
+            
+            <div class="row text-muted small">
+                <div class="col-md-6">
+                    <p>
+                        <strong>Last Token Refresh:</strong><br>
+                        <em>Automatically managed by the system</em>
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p>
+                        <strong>Status:</strong><br>
+                        <span class="badge badge-success">Active</span>
+                    </p>
+                </div>
+            </div>
+
+        {% else %}
+            <div class="alert alert-warning mb-3">
+                <i class="bi bi-info-circle mr-2"></i>
+                <strong>Not Connected</strong>
+                <p class="small mt-2 mb-0">
+                    This doctor has not connected their Google Calendar yet. 
+                    Online consultation appointments will not create Google Meet links until they do.
+                </p>
+            </div>
+            
+            <button type="button" class="btn btn-sm btn-outline-info" disabled>
+                <i class="bi bi-google mr-1"></i>Doctor Must Connect
+            </button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Online Appointments Summary -->
+<div class="card mb-3">
+    <div class="card-header">
+        <h6 class="mb-0">
+            <i class="bi bi-video mr-2"></i>Online Appointment Summary
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-4">
+                <p class="mb-1 text-muted small">Total Online Appointments</p>
+                <h4 class="text-primary">{{ total_online_appointments }}</h4>
+            </div>
+            <div class="col-md-4">
+                <p class="mb-1 text-muted small">With Google Meet Links</p>
+                <h4 class="text-success">{{ online_with_meet_links }}</h4>
+            </div>
+            <div class="col-md-4">
+                <p class="mb-1 text-muted small">Pending Links</p>
+                <h4 class="text-warning">{{ online_pending_links }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
