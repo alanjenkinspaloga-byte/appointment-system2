@@ -460,18 +460,14 @@ class DoctorClinicSettingsView(LoginRequiredMixin, View):
         if not doctor:
             return redirect('dashboard')
 
-        form = DoctorClinicSettingsForm(request.POST, request.FILES)
+        form = DoctorClinicSettingsForm(request.POST)
         if form.is_valid():
             cd = form.cleaned_data
 
-            # Update doctor fee, LinkedIn, and profile picture
+            # Update doctor fee and LinkedIn
             doctor.consultation_fee = cd['consultation_fee']
             doctor.linkedin_url = cd.get('linkedin_url') or None
-            if 'profile_picture' in request.FILES and request.FILES['profile_picture']:
-                doctor.profile_picture = request.FILES['profile_picture']
-                doctor.save(update_fields=['consultation_fee', 'linkedin_url', 'profile_picture'])
-            else:
-                doctor.save(update_fields=['consultation_fee', 'linkedin_url'])
+            doctor.save(update_fields=['consultation_fee', 'linkedin_url'])
 
             # Update or create hospital
             h = doctor.hospital

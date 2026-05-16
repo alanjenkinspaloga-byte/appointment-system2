@@ -343,14 +343,6 @@ class DoctorClinicSettingsForm(forms.Form):
         label='LinkedIn Profile URL',
         help_text='Optional. Share your LinkedIn profile so patients can verify your credentials.',
     )
-    profile_picture = forms.ImageField(
-        required=False,
-        widget=forms.FileInput(attrs={
-            'class': 'form-control', 'accept': 'image/*',
-        }),
-        label='Profile Picture',
-        help_text='Upload a professional profile picture (JPG, PNG)',
-    )
 
     # --- Clinic / Hospital fields ---
     clinic_name = forms.CharField(

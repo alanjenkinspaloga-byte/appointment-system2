@@ -78,11 +78,16 @@
                   {% if form.consultation_fee.errors %}<div class="text-danger small mt-1">{{ form.consultation_fee.errors.0 }}</div>{% endif %}
                 </div>
                 <div class="col-12">
-                  <label class="form-label fw-semibold"><i class="bi bi-image me-1" style="color:#8b5cf6;"></i>{{ form.profile_picture.label }}</label>
-                  {{ form.profile_picture }}
-                  <div class="form-text">Upload a professional profile picture to increase patient trust and credibility (JPG, PNG recommended).</div>
-                  {% if doctor.profile_picture %}<p class="mt-2"><small><i class="bi bi-check-circle-fill text-success me-1"></i>Current picture uploaded</small></p>{% endif %}
-                  {% if form.profile_picture.errors %}<div class="text-danger small mt-1">{{ form.profile_picture.errors.0 }}</div>{% endif %}
+                  <label class="form-label fw-semibold"><i class="bi bi-image me-1" style="color:#8b5cf6;"></i>Profile Picture</label>
+                  {% if doctor.profile_picture %}
+                    <div class="mt-2">
+                      <img src="{{ doctor.profile_picture.url }}" alt="Dr. {{ doctor.user.get_full_name }}" style="width: 150px; height: 150px; object-fit: cover; border-radius: 12px; border: 2px solid #e2e8f0;">
+                      <p class="mt-2"><small><i class="bi bi-check-circle-fill text-success me-1"></i>Profile picture uploaded</small></p>
+                      <p class="form-text">Your profile picture is displayed to patients viewing your credentials.</p>
+                    </div>
+                  {% else %}
+                    <p class="text-muted"><i class="bi bi-image me-1"></i>No profile picture uploaded yet. Upload one from your profile page.</p>
+                  {% endif %}
                 </div>
                 <div class="col-12">
                   <label class="form-label fw-semibold"><i class="bi bi-linkedin me-1" style="color:#0a66c2;"></i>{{ form.linkedin_url.label }}</label>
