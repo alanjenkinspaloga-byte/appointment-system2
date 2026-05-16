@@ -192,6 +192,11 @@ class Doctor(models.Model):
         blank=True, null=True,
         help_text='LinkedIn profile URL (e.g. https://www.linkedin.com/in/yourname)',
     )
+    profile_picture = models.ImageField(
+        upload_to='doctor_profiles/',
+        blank=True, null=True,
+        help_text='Professional profile picture for credibility and recognition',
+    )
 
     # --- Google Calendar Integration ---
     is_google_calendar_connected = models.BooleanField(

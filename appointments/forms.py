@@ -138,7 +138,7 @@ class DoctorForm(forms.ModelForm):
         # hospital & consultation_fee are managed via Clinic Settings page
         fields = [
             'specialization', 'specialization_category',
-            'license_number',
+            'license_number', 'profile_picture',
         ]
         widgets = {
             'specialization': forms.Select(
@@ -148,6 +148,10 @@ class DoctorForm(forms.ModelForm):
             'specialization_category': forms.Select(attrs={'class': 'form-select'}),
             'license_number': forms.TextInput(attrs={
                 'class': 'form-control', 'placeholder': 'License number',
+            }),
+            'profile_picture': forms.FileInput(attrs={
+                'class': 'form-control', 'accept': 'image/*',
+                'help_text': 'Upload a professional profile picture (JPG, PNG)',
             }),
         }
 
