@@ -1373,7 +1373,7 @@ class ProfileView(LoginRequiredMixin, View):
         if request.user.profile.role == 'doctor':
             doctor, _ = Doctor.objects.get_or_create(
                 user=request.user, defaults={'specialization': 'Pediatrics'})
-            role_form = DoctorForm(request.POST, instance=doctor)
+            role_form = DoctorForm(request.POST, request.FILES, instance=doctor)
         elif request.user.profile.role == 'patient':
             patient, _ = Patient.objects.get_or_create(user=request.user)
             role_form = PatientForm(request.POST, instance=patient)
