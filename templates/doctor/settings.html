@@ -161,6 +161,18 @@
                   allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
               </div>
               {% endif %}
+
+              <!-- Online Consultation Setting -->
+              <div class="mt-4 p-3" style="background-color: #e8f5e9; border-radius: 10px; border-left: 4px solid #4caf50;">
+                <label class="form-label fw-semibold mb-2">{{ form.accepts_online_consultations.label }}</label>
+                <div class="form-check form-check-lg">
+                  {{ form.accepts_online_consultations }}
+                  <label class="form-check-label" for="{{ form.accepts_online_consultations.id_for_label }}">
+                    <small class="text-muted d-block mt-1">{{ form.accepts_online_consultations.help_text }}</small>
+                  </label>
+                </div>
+                {% if form.accepts_online_consultations.errors %}<div class="text-danger small mt-1">{{ form.accepts_online_consultations.errors.0 }}</div>{% endif %}
+              </div>
             </div>
           </div>
 

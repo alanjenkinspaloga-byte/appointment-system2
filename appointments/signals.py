@@ -48,6 +48,23 @@ def appointment_notification(sender, instance, created, **kwargs):
                 message=f'Your appointment with {doctor_name} on {appt_date} has been confirmed. Queue #{instance.queue_number or "—"}.',
             )
             
+            # Send confirmation email
+            try:
+                from .email_utils import send_online_appointment_confirmation_email, send_in_person_appointment_confirmation_email
+                import logging
+                email_logger = logging.getLogger(__name__)
+                
+                if instance.is_online_consultation and instance.jitsi_meet_link:
+                    send_online_appointment_confirmation_email(instance)
+                    email_logger.info(f"Online appointment confirmation email sent for appointment {instance.id}")
+                else:
+                    send_in_person_appointment_confirmation_email(instance)
+                    email_logger.info(f"In-person appointment confirmation email sent for appointment {instance.id}")
+            except Exception as e:
+                import logging
+                email_logger = logging.getLogger(__name__)
+                email_logger.error(f"Error sending appointment confirmation email for appointment {instance.id}: {str(e)}")
+            
             # Create Google Meet event if this is an online consultation
             # and doctor has Google Calendar connected
             if instance.is_online_consultation and instance.doctor.is_google_calendar_connected:

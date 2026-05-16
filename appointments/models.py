@@ -208,6 +208,12 @@ class Doctor(models.Model):
         help_text='Encrypted Google OAuth 2.0 token for calendar access',
     )
 
+    # --- Online Consultation Settings ---
+    accepts_online_consultations = models.BooleanField(
+        default=True,
+        help_text='Whether the doctor accepts online video consultations via Jitsi Meet',
+    )
+
     def __str__(self):
         tag = "Approved" if self.is_approved else "Pending"
         return f"Dr. {self.user.get_full_name()} — {self.specialization} [{tag}]"
@@ -447,6 +453,46 @@ class Notification(models.Model):
     def __str__(self):
         return f"[{'READ' if self.is_read else 'UNREAD'}] {self.user.username}: {self.title}"
 
+    class Meta:
+        ordering = ['-created_at']
+
+
+# ============================================================
+# 10. JITSI LINK LOG MODEL (for analytics)
+# ============================================================
+class JitsiLinkLog(models.Model):
+    """Track Jitsi Meet link generation and usage for analytics."""
+    appointment = models.OneToOneField(
+        Appointment, on_delete=models.CASCADE,
+        related_name='jitsi_link_log', null=True, blank=True,
+    )
+    jitsi_room_name = models.CharField(
+        max_length=255,
+        help_text='Jitsi room name (e.g., okidoki-5-12-42-a7c3d9e2)',
+    )
+    jitsi_url = models.URLField(
+        help_text='Full Jitsi Meet URL',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # Analytics fields
+    link_accessed_count = models.PositiveIntegerField(
+        default=0,
+        help_text='Number of times the link has been accessed',
+    )
+    doctor_accessed_at = models.DateTimeField(
+        blank=True, null=True,
+        help_text='Timestamp when doctor first accessed the link',
+    )
+    patient_accessed_at = models.DateTimeField(
+        blank=True, null=True,
+        help_text='Timestamp when patient first accessed the link',
+    )
+    
+    def __str__(self):
+        return f"Jitsi Link: {self.jitsi_room_name} (Appt #{self.appointment.id if self.appointment else 'N/A'})"
+    
     class Meta:
         ordering = ['-created_at']
 

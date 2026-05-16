@@ -415,6 +415,15 @@ class DoctorClinicSettingsForm(forms.Form):
         label='Google Maps Embed URL',
         help_text='From Google Maps → Share → Embed a map → copy the src value only.',
     )
+    accepts_online_consultations = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input',
+        }),
+        label='I accept online video consultations (Jitsi Meet)',
+        help_text='Allow patients to book online appointments with you for video consultations.',
+        initial=True,
+    )
 
 
 # --------------------------------------------------

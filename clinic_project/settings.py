@@ -177,6 +177,9 @@ GOOGLE_MEET_CONFIG = {
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@cliniccare.local'
 
+# Site URL for email templates (used in generating full URLs for emails)
+SITE_URL = config('SITE_URL', default='http://localhost:8000')
+
 # --------------------------------------------------
 # MESSAGES FRAMEWORK — Bootstrap CSS classes
 # --------------------------------------------------

@@ -451,6 +451,7 @@ class DoctorClinicSettingsView(LoginRequiredMixin, View):
             'latitude':       h.latitude       if h else None,
             'longitude':      h.longitude      if h else None,
             'map_embed_url':  h.map_embed_url  if h else '',
+            'accepts_online_consultations': doctor.accepts_online_consultations,
         }
         form = DoctorClinicSettingsForm(initial=initial)
         return render(request, self.template_name, {'form': form, 'doctor': doctor})
@@ -464,10 +465,11 @@ class DoctorClinicSettingsView(LoginRequiredMixin, View):
         if form.is_valid():
             cd = form.cleaned_data
 
-            # Update doctor fee and LinkedIn
+            # Update doctor fee, LinkedIn, and online consultation preference
             doctor.consultation_fee = cd['consultation_fee']
             doctor.linkedin_url = cd.get('linkedin_url') or None
-            doctor.save(update_fields=['consultation_fee', 'linkedin_url'])
+            doctor.accepts_online_consultations = cd.get('accepts_online_consultations', True)
+            doctor.save(update_fields=['consultation_fee', 'linkedin_url', 'accepts_online_consultations'])
 
             # Update or create hospital
             h = doctor.hospital
@@ -1132,6 +1134,27 @@ class BookAppointmentView(LoginRequiredMixin, View):
         
         if form.is_valid():
             appointment_time = form.cleaned_data.get('appointment_time')
+            is_online = form.cleaned_data.get('is_online_consultation', False)
+            
+            # Check if doctor accepts online consultations
+            if is_online and not availability.doctor.accepts_online_consultations:
+                messages.error(
+                    request, 
+                    'This doctor does not accept online video consultations. '
+                    'Please book an in-person appointment instead.'
+                )
+                available_times = self._get_available_times(availability)
+                booked_times = self._get_booked_times(availability.doctor, availability.date)
+                free_times = [t for t in available_times if t not in booked_times]
+                return render(request, self.template_name, {
+                    'form': form, 
+                    'availability': availability,
+                    'available_times': free_times,
+                    'booked_times': sorted(list(booked_times)),
+                    'total_slots': len(available_times),
+                    'booked_count': len(booked_times),
+                    'free_count': len(free_times),
+                })
             
             # Check if the time slot is still available
             booked_times = self._get_booked_times(availability.doctor, availability.date)
@@ -1184,12 +1207,22 @@ class BookAppointmentView(LoginRequiredMixin, View):
                 # Generate Jitsi Meet link if this is an online consultation
                 if appt.is_online_consultation:
                     from .jitsi_utils import generate_jitsi_meet_link
-                    appt.jitsi_meet_link = generate_jitsi_meet_link(
+                    from .models import JitsiLinkLog
+                    
+                    link_data = generate_jitsi_meet_link(
                         doctor_id=appt.doctor.id,
                         patient_id=appt.patient.id,
                         appointment_id=appt.id
                     )
+                    appt.jitsi_meet_link = link_data['url']
                     appt.save(update_fields=['jitsi_meet_link'])
+                    
+                    # Log the Jitsi link generation for analytics
+                    JitsiLinkLog.objects.create(
+                        appointment=appt,
+                        jitsi_room_name=link_data['room_name'],
+                        jitsi_url=link_data['url'],
+                    )
                 
                 messages.success(
                     request,

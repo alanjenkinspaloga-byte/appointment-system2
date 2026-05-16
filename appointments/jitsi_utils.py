@@ -24,11 +24,12 @@ def generate_jitsi_meet_link(doctor_id, patient_id, appointment_id):
         appointment_id: ID of the appointment
         
     Returns:
-        Full Jitsi Meet URL (string)
+        Dictionary with 'url' and 'room_name' keys
     
     Example:
-        generate_jitsi_meet_link(5, 12, 42) 
-        -> https://meet.jit.si/okidoki-5-12-42-a7c3d9e2
+        result = generate_jitsi_meet_link(5, 12, 42) 
+        result['url'] -> https://meet.jit.si/okidoki-5-12-42-a7c3d9e2
+        result['room_name'] -> okidoki-5-12-42-a7c3d9e2
     """
     # Generate a short random slug for additional uniqueness
     random_slug = str(uuid.uuid4())[:8]
@@ -41,4 +42,7 @@ def generate_jitsi_meet_link(doctor_id, patient_id, appointment_id):
     
     logger.info(f"Generated Jitsi Meet link for appointment {appointment_id}: {jitsi_url}")
     
-    return jitsi_url
+    return {
+        'url': jitsi_url,
+        'room_name': room_name,
+    }

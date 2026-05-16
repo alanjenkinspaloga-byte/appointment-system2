@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Online Appointment Confirmation — OkiDoki{% endblock %}
+
+{% block content %}
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
+    <!-- Header -->
+    <div style="background-color: #1a56db; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="margin: 0; font-size: 24px;">Your Appointment is Confirmed!</h1>
+        <p style="margin: 10px 0 0 0; font-size: 14px;">Appointment #{{ appointment.id }}</p>
+    </div>
+
+    <!-- Main Content -->
+    <div style="background-color: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <!-- Greeting -->
+        <p style="margin: 0 0 20px 0; font-size: 16px; color: #333;">
+            Hello {{ patient_name }},
+        </p>
+
+        <p style="margin: 0 0 20px 0; font-size: 14px; color: #555; line-height: 1.6;">
+            Your online video consultation with <strong>Dr. {{ doctor_name }}</strong> has been confirmed!
+        </p>
+
+        <!-- Appointment Details Card -->
+        <div style="background-color: #f0f4ff; border-left: 4px solid #1a56db; padding: 20px; margin: 20px 0; border-radius: 4px;">
+            <h2 style="margin: 0 0 15px 0; font-size: 16px; color: #1a56db; font-weight: 700;">Appointment Details</h2>
+            <table style="width: 100%; font-size: 14px; color: #333;">
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 10px 0;"><strong>Date:</strong></td>
+                    <td style="padding: 10px 0; text-align: right;">{{ appointment.date|date:"F j, Y" }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 10px 0;"><strong>Time:</strong></td>
+                    <td style="padding: 10px 0; text-align: right;">{{ appointment.appointment_time|time:"H:i" }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 10px 0;"><strong>Doctor:</strong></td>
+                    <td style="padding: 10px 0; text-align: right;">Dr. {{ doctor_name }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 10px 0;"><strong>Specialization:</strong></td>
+                    <td style="padding: 10px 0; text-align: right;">{{ appointment.doctor.specialization }}</td>
+                </tr>
+                {% if appointment.doctor.hospital %}
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 10px 0;"><strong>Clinic:</strong></td>
+                    <td style="padding: 10px 0; text-align: right;">{{ appointment.doctor.hospital.name }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td style="padding: 10px 0;"><strong>Queue Number:</strong></td>
+                    <td style="padding: 10px 0; text-align: right;">
+                        {% if appointment.queue_number %}
+                            <span style="background-color: #10b981; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;">Q#{{ appointment.queue_number }}</span>
+                        {% else %}
+                            <span style="color: #999;">Pending</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Video Call Section -->
+        {% if appointment.is_online_consultation and appointment.jitsi_meet_link %}
+        <div style="background-color: #e8f5e9; border-left: 4px solid #4caf50; padding: 20px; margin: 20px 0; border-radius: 4px;">
+            <h2 style="margin: 0 0 15px 0; font-size: 16px; color: #2e7d32; font-weight: 700;">
+                <span style="font-size: 18px;">🎥</span> Join Your Video Consultation
+            </h2>
+            <p style="margin: 0 0 15px 0; font-size: 14px; color: #555; line-height: 1.6;">
+                No signup or software installation needed! Click the button below to join the video call 5 minutes before your scheduled time.
+            </p>
+            <a href="{{ appointment.jitsi_meet_link }}" style="display: inline-block; background-color: #4caf50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px;">
+                ▶ Join Video Call
+            </a>
+            <p style="margin: 15px 0 0 0; font-size: 12px; color: #666;">
+                Video Room: <code style="background-color: #f0f0f0; padding: 2px 6px; border-radius: 2px;">{{ appointment.jitsi_meet_link|slice:"30:" }}</code>
+            </p>
+        </div>
+
+        <!-- Privacy & Security Notice -->
+        <div style="background-color: #fff3cd; border-left: 4px solid #ff9800; padding: 20px; margin: 20px 0; border-radius: 4px;">
+            <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #856404; font-weight: 700;">
+                ⚠️ Privacy & Security Information
+            </h3>
+            <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #856404; line-height: 1.6;">
+                <li>Video calls are transmitted securely (HTTPS) but not end-to-end encrypted</li>
+                <li>Avoid sharing sensitive information like SSN, credit card numbers, or passwords</li>
+                <li>For highly confidential matters, please book an in-person appointment</li>
+                <li>You have the option to reschedule as an in-person appointment</li>
+            </ul>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: #856404;">
+                <a href="{{ video_terms_url }}" style="color: #0c63e4; text-decoration: none;">Read full Video Consultation Terms and Conditions</a>
+            </p>
+        </div>
+
+        <!-- Important Notes -->
+        <div style="background-color: #f5f5f5; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #333; font-weight: 700;">Important Notes:</h3>
+            <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #555; line-height: 1.8;">
+                <li>Please have your medical history or relevant documents ready</li>
+                <li>Make sure your camera and microphone are working before the call</li>
+                <li>Join from a private location for confidentiality</li>
+                <li>Ensure stable internet connection for the best experience</li>
+            </ul>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ appointment_details_url }}" style="display: inline-block; background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px; margin-right: 10px;">
+                View Full Appointment
+            </a>
+            <a href="{{ reschedule_url }}" style="display: inline-block; background-color: #f0f0f0; color: #333; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px;">
+                Reschedule Appointment
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <div style="border-top: 1px solid #ddd; padding-top: 20px; margin-top: 30px; font-size: 12px; color: #999; text-align: center; line-height: 1.6;">
+            <p style="margin: 0;">If you have any questions, please contact us at:</p>
+            <p style="margin: 0;"><a href="mailto:support@okidoki.clinic" style="color: #1a56db; text-decoration: none;">support@okidoki.clinic</a></p>
+            <p style="margin: 10px 0 0 0;">
+                © 2026 OkiDoki Healthcare System. All rights reserved.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

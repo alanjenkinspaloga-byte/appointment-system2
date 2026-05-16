@@ -116,6 +116,7 @@
                             <label class="form-label fw-bold mb-3">
                                 <i class="bi bi-laptop me-2" style="color: var(--blue-primary);"></i>Appointment Type
                             </label>
+                            {% if availability.doctor.accepts_online_consultations %}
                             <div class="form-check form-check-lg">
                                 <input class="form-check-input" type="checkbox" id="id_is_online_consultation" name="is_online_consultation">
                                 <label class="form-check-label" for="id_is_online_consultation">
@@ -124,11 +125,19 @@
                                     <small class="text-muted">Secure video call appointment instead of visiting the clinic in person</small>
                                 </label>
                             </div>
+                            {% else %}
+                            <div class="alert alert-info mb-0" role="alert">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>In-Person Only</strong><br>
+                                <small>This doctor currently only accepts in-person appointments.</small>
+                            </div>
+                            {% endif %}
                             {% for error in form.is_online_consultation.errors %}
                             <div class="text-danger small mt-2"><i class="bi bi-exclamation-triangle me-1"></i>{{ error }}</div>
                             {% endfor %}
                             
                             <!-- Privacy Disclaimer -->
+                            {% if availability.doctor.accepts_online_consultations %}
                             <div class="mt-3 p-3" style="background-color: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
                                 <p class="mb-2" style="font-size: 0.9rem; color: #856404;">
                                     <i class="bi bi-shield-exclamation me-2" style="color: #ff9800;"></i>
@@ -145,6 +154,7 @@
                                     </li>
                                 </ul>
                             </div>
+                            {% endif %}
                         </div>
 
                         {% for field in form %}
