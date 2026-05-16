@@ -872,16 +872,16 @@ class PatientDashboardView(LoginRequiredMixin, View):
         return render(request, self.template_name, context)
 
 
-class CategorySelectView(LoginRequiredMixin, View):
-    """Patient picks a category: Pediatrics or OB-GYN."""
+class CategorySelectView(View):
+    """Patient picks a category: Pediatrics or OB-GYN. No login required for browsing."""
     template_name = 'patient/category_select.html'
 
     def get(self, request):
         return render(request, self.template_name)
 
 
-class DoctorListView(LoginRequiredMixin, View):
-    """Patient views approved doctors, optionally filtered by category."""
+class DoctorListView(View):
+    """Patient views approved doctors, optionally filtered by category. No login required for browsing."""
     template_name = 'patient/doctor_list.html'
 
     def get(self, request):
