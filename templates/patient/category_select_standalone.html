@@ -8,8 +8,13 @@
       <!-- Always full-width for standalone (no sidebar) -->
       <div class="col-12">
         <div class="mb-4">
-          <h1 class="dash-title">Find a <span>Doctor</span></h1>
-          <p class="dash-subtitle">Select a medical category to find available doctors.</p>
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+              <h1 class="dash-title">Find a <span>Doctor</span></h1>
+              <p class="dash-subtitle">Select a medical category to find available doctors.</p>
+            </div>
+            <a href="{% url 'home' %}" class="btn-dash-outline-muted"><i class="bi bi-arrow-left"></i> Home</a>
+          </div>
         </div>
         <div class="row g-4">
           <div class="col-md-6">
