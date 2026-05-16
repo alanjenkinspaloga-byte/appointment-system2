@@ -119,7 +119,7 @@
               <tbody>
                 {% for appt in appointments %}
                 <tr>
-                  <td data-label="#">{{ appt.pk }}</td>
+                  <td data-label="#">#{{ appt.get_doctor_appointment_number }}</td>
                   <td data-label="Patient"><span class="td-name">{{ appt.patient.user.get_full_name }}</span></td>
                   <td data-label="Date" class="td-meta">{{ appt.date }}</td>
                   <td data-label="Time" class="td-meta">{{ appt.availability.start_time }} – {{ appt.availability.end_time }}</td>

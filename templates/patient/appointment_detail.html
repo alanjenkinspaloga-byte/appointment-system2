@@ -20,7 +20,7 @@
       <div class="col-md-9 col-lg-10">
         <div class="mb-4">
           <h1 class="dash-title">Appointment <span>#{{ appointment.pk }}</span></h1>
-          <p class="dash-subtitle">Full details of your booking.</p>
+          <p class="dash-subtitle">Your appointment #{{ appointment.get_patient_appointment_number }} • Full details of your booking.</p>
         </div>
         <div class="row g-4">
           <!-- Details -->

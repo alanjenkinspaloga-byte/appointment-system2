@@ -381,6 +381,28 @@ class Appointment(models.Model):
                 self.queue_number = (last.queue_number + 1) if last else 1
         super().save(*args, **kwargs)
 
+    def get_patient_appointment_number(self):
+        """Get this appointment's ordinal number for the patient (1st, 2nd, 3rd, etc.)"""
+        patient_appointments = Appointment.objects.filter(
+            patient=self.patient
+        ).order_by('id')
+        
+        for index, appt in enumerate(patient_appointments, start=1):
+            if appt.id == self.id:
+                return index
+        return 1
+    
+    def get_doctor_appointment_number(self):
+        """Get this appointment's ordinal number for the doctor (1st, 2nd, 3rd, etc.)"""
+        doctor_appointments = Appointment.objects.filter(
+            doctor=self.doctor
+        ).order_by('id')
+        
+        for index, appt in enumerate(doctor_appointments, start=1):
+            if appt.id == self.id:
+                return index
+        return 1
+
     def __str__(self):
         return (
             f"#{self.pk} | {self.patient.user.get_full_name()} → "
