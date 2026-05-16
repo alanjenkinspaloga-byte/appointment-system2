@@ -97,11 +97,20 @@
             </div>
             <div class="dash-card-body">
               {% for field in role_form %}
-              <div class="mb-3">
-                <label class="form-label fw-semibold">{{ field.label }}</label>
-                {{ field }}
-                {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
-              </div>
+                {% if field.name == 'profile_picture' %}
+                <div class="mb-3">
+                  <label class="form-label fw-semibold"><i class="bi bi-image me-1" style="color:#8b5cf6;"></i>{{ field.label }}</label>
+                  <input type="file" name="profile_picture" class="form-control" accept="image/*">
+                  {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+                  <div class="form-text">Upload a professional profile picture (JPG, PNG recommended)</div>
+                </div>
+                {% else %}
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+                </div>
+                {% endif %}
               {% endfor %}
             </div>
           </div>
