@@ -31,11 +31,16 @@ def get_credentials_file():
     Get the path to the OAuth 2.0 credentials JSON file.
     This should be stored in your Django settings or project directory.
     """
+    import os
     credentials_path = getattr(
         settings, 
         'GOOGLE_OAUTH_CREDENTIALS_FILE',
         'google_oauth_credentials.json'
     )
+    # Check if the path is a string and ensure it's absolute
+    if isinstance(credentials_path, str):
+        if not os.path.isabs(credentials_path):
+            credentials_path = os.path.join(settings.BASE_DIR, credentials_path)
     return credentials_path
 
 
@@ -47,11 +52,22 @@ def google_oauth_authorize(request):
     Redirects user to Google's authorization server.
     """
     try:
+        import os
         doctor = request.user.doctor_profile
+        
+        # Check if credentials file exists
+        credentials_file = get_credentials_file()
+        if not os.path.exists(credentials_file):
+            logger.error(f"Google OAuth credentials file not found at: {credentials_file}")
+            messages.error(
+                request,
+                'Google OAuth credentials file not found. Please contact admin to set up Google OAuth.'
+            )
+            return redirect('doctor_dashboard')
         
         # Initialize the OAuth flow
         flow = Flow.from_client_secrets_file(
-            get_credentials_file(),
+            credentials_file,
             scopes=SCOPES,
             redirect_uri=request.build_absolute_uri('/appointments/google-oauth-callback/'),
         )
@@ -113,8 +129,18 @@ def google_oauth_callback(request):
             return redirect('doctor_dashboard')
         
         # Initialize flow
+        import os
+        credentials_file = get_credentials_file()
+        if not os.path.exists(credentials_file):
+            logger.error(f"Google OAuth credentials file not found at: {credentials_file}")
+            messages.error(
+                request,
+                'Google OAuth credentials file not found. Please contact admin to set up Google OAuth.'
+            )
+            return redirect('doctor_dashboard')
+        
         flow = Flow.from_client_secrets_file(
-            get_credentials_file(),
+            credentials_file,
             scopes=SCOPES,
             state=state,
             redirect_uri=request.build_absolute_uri('/appointments/google-oauth-callback/'),

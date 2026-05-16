@@ -264,9 +264,19 @@ class AppointmentBookingForm(forms.ModelForm):
         help_text='Choose a specific time from the available slots below',
     )
     
+    is_online_consultation = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input',
+            'id': 'id_is_online_consultation',
+        }),
+        label='Book as Online Consultation (Google Meet)',
+        help_text='Check this if you prefer a virtual appointment via Google Meet instead of visiting the clinic',
+    )
+    
     class Meta:
         model = Appointment
-        fields = ['appointment_time', 'reason']
+        fields = ['appointment_time', 'is_online_consultation', 'reason']
         widgets = {
             'reason': forms.Textarea(attrs={
                 'class': 'form-control', 'rows': 3,

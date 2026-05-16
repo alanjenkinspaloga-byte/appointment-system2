@@ -63,6 +63,11 @@
                 <p class="mb-1" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;color:var(--dn);">
                   <i class="bi bi-cash me-1" style="color:#059669;"></i>&#8369;{{ doctor.consultation_fee }} / consultation
                 </p>
+                {% if doctor.is_google_calendar_connected %}
+                <p class="mb-2" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;color:#2563eb;">
+                  <i class="bi bi-laptop me-1"></i>Online Consultations Available (Google Meet)
+                </p>
+                {% endif %}
                 {% if doctor.linkedin_url %}
                 <a href="{{ doctor.linkedin_url }}" target="_blank" rel="noopener noreferrer" class="btn-dash-outline mt-2" style="display:inline-flex;">
                   <i class="bi bi-linkedin"></i> LinkedIn Profile

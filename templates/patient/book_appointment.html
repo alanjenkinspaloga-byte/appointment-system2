@@ -111,8 +111,26 @@
                             {% endfor %}
                         </div>
 
+                        <!-- Appointment Type Selection -->
+                        <div class="mb-4 p-3" style="background-color: #f8f9fa; border-radius: 10px; border-left: 4px solid var(--blue-primary);">
+                            <label class="form-label fw-bold mb-3">
+                                <i class="bi bi-laptop me-2" style="color: var(--blue-primary);"></i>Appointment Type
+                            </label>
+                            <div class="form-check form-check-lg">
+                                <input class="form-check-input" type="checkbox" id="id_is_online_consultation" name="is_online_consultation">
+                                <label class="form-check-label" for="id_is_online_consultation">
+                                    <strong>Online Consultation via Google Meet</strong>
+                                    <br>
+                                    <small class="text-muted">Video call appointment instead of visiting the clinic in person</small>
+                                </label>
+                            </div>
+                            {% for error in form.is_online_consultation.errors %}
+                            <div class="text-danger small mt-2"><i class="bi bi-exclamation-triangle me-1"></i>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
                         {% for field in form %}
-                        {% if field.name != 'appointment_time' %}
+                        {% if field.name not in 'appointment_time,is_online_consultation' %}
                         <div class="mb-3">
                             <label class="form-label fw-bold">{{ field.label }}</label>
                             {{ field }}
@@ -145,6 +163,7 @@
                         <li>Select a time slot within doctor's office hours</li>
                         <li>Each doctor has independent queues</li>
                         <li>Queue position based on appointment time (earlier = priority)</li>
+                        <li><strong>Online Consultations:</strong> If available, check the "Online Consultation via Google Meet" option to join a video call instead of visiting the clinic</li>
                     </ul>
                 </div>
             </div>
