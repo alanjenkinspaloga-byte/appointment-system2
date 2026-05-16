@@ -86,6 +86,27 @@
               </div>
             </div>
 
+            <!-- Online Video Consultation -->
+            {% if appointment.is_online_consultation and appointment.jitsi_meet_link %}
+            <div class="dash-card mt-3" style="margin-bottom:0; border-left: 4px solid #10b981;">
+              <div class="dash-card-header"><span><i class="bi bi-camera-video" style="color: #10b981;"></i>Video Consultation</span></div>
+              <div class="dash-card-body">
+                <div class="alert alert-info mb-3" role="alert">
+                  <i class="bi bi-info-circle me-2"></i>
+                  <strong>Online Video Call</strong><br>
+                  <small>Join the video call below. No signup required!</small>
+                </div>
+                <a href="{{ appointment.jitsi_meet_link }}" target="_blank" class="btn btn-success btn-lg w-100">
+                  <i class="bi bi-play-circle me-2"></i>Join Video Call
+                </a>
+                <small class="text-muted d-block mt-2">
+                  <i class="bi bi-clock me-1"></i>
+                  Please join 5 minutes before the scheduled time.
+                </small>
+              </div>
+            </div>
+            {% endif %}
+
             {% if appointment.doctor.hospital and appointment.doctor.hospital.map_embed_url %}
             <div class="dash-card mt-3" style="margin-bottom:0;">
               <div class="dash-card-header"><span><i class="bi bi-geo-alt hi"></i>Location</span></div>

@@ -1180,6 +1180,17 @@ class BookAppointmentView(LoginRequiredMixin, View):
             
             try:
                 appt.save()
+                
+                # Generate Jitsi Meet link if this is an online consultation
+                if appt.is_online_consultation:
+                    from .jitsi_utils import generate_jitsi_meet_link
+                    appt.jitsi_meet_link = generate_jitsi_meet_link(
+                        doctor_id=appt.doctor.id,
+                        patient_id=appt.patient.id,
+                        appointment_id=appt.id
+                    )
+                    appt.save(update_fields=['jitsi_meet_link'])
+                
                 messages.success(
                     request,
                     f'Appointment booked with Dr. {availability.doctor.user.get_full_name()} '
@@ -1529,6 +1540,14 @@ class ContactMessageView(View):
             messages.error(request, 'An error occurred while sending your message. Please try again.')
         
         return redirect('home')
+
+
+class VideoConsultationTermsView(View):
+    """Display video consultation terms and privacy notice."""
+    template_name = 'video_consultation_terms.html'
+    
+    def get(self, request):
+        return render(request, self.template_name)
 
 
 class AdminMessagesView(LoginRequiredMixin, View):

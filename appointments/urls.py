@@ -12,6 +12,7 @@ urlpatterns = [
     # HOME
     path('', views.HomeView.as_view(), name='home'),
     path('contact/', views.ContactMessageView.as_view(), name='contact_message'),
+    path('video-consultation-terms/', views.VideoConsultationTermsView.as_view(), name='video_consultation_terms'),
 
     # AUTHENTICATION
     path('register/', views.RegisterView.as_view(), name='register'),

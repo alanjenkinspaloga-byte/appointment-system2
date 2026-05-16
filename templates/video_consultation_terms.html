@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% block title %}Video Consultation Terms & Privacy — OkiDoki{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px; margin-top: 3rem; margin-bottom: 3rem;">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <h1 class="mb-4" style="color: #0f172a; font-weight: 800;">
+                <i class="bi bi-shield-check me-2" style="color: #1a56db;"></i>Video Consultation Terms & Privacy
+            </h1>
+            
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h2 class="h5 mb-3" style="color: #1e3a5f; font-weight: 700;">
+                        <i class="bi bi-exclamation-triangle me-2" style="color: #ff9800;"></i>Important Privacy Notice
+                    </h2>
+                    <p class="text-muted mb-0">
+                        Please read this entire document before booking or participating in an online video consultation. 
+                        By proceeding with an online appointment, you acknowledge and agree to the terms below.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Section 1: Encryption & Security -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light p-3 border-bottom-0">
+                    <h3 class="h6 mb-0" style="color: #1e3a5f; font-weight: 700;">
+                        <i class="bi bi-lock-fill me-2" style="color: #1a56db;"></i>1. Encryption & Security
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li class="mb-2">Video consultations use secure HTTPS encryption during transmission</li>
+                        <li class="mb-2">Video and audio are NOT end-to-end encrypted</li>
+                        <li class="mb-2">The video platform provider (Jitsi) can theoretically access video data</li>
+                        <li class="mb-2">We recommend using a private network (not public WiFi) for consultations</li>
+                        <li>For highly sensitive matters, in-person visits are more secure</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 2: What Not to Share -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light p-3 border-bottom-0">
+                    <h3 class="h6 mb-0" style="color: #1e3a5f; font-weight: 700;">
+                        <i class="bi bi-ban me-2" style="color: #dc3545;"></i>2. Do NOT Share During Video Calls
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li class="mb-2">Social Security Numbers or Tax ID numbers</li>
+                        <li class="mb-2">Credit card numbers or banking information</li>
+                        <li class="mb-2">PIN codes or passwords</li>
+                        <li class="mb-2">Driver's license or government ID details</li>
+                        <li class="mb-2">Insurance policy details (if not necessary)</li>
+                        <li>Any other highly sensitive personal information</li>
+                    </ul>
+                    <p class="text-muted mt-3 mb-0">
+                        <strong>If needed:</strong> Share sensitive information via secure methods (encrypted email, phone, or in-person)
+                    </p>
+                </div>
+            </div>
+
+            <!-- Section 3: Data Storage -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light p-3 border-bottom-0">
+                    <h3 class="h6 mb-0" style="color: #1e3a5f; font-weight: 700;">
+                        <i class="bi bi-database me-2" style="color: #1a56db;"></i>3. Data Storage & Recording
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li class="mb-2">Video consultations are NOT automatically recorded</li>
+                        <li class="mb-2">Appointment details are stored in our secure database</li>
+                        <li class="mb-2">Recording is only done with explicit consent from both parties</li>
+                        <li class="mb-2">Data is retained per Philippines Data Privacy Act (RA 10173)</li>
+                        <li>You have the right to request data deletion (subject to legal requirements)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 4: Third Party Involvement -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light p-3 border-bottom-0">
+                    <h3 class="h6 mb-0" style="color: #1e3a5f; font-weight: 700;">
+                        <i class="bi bi-diagram-3 me-2" style="color: #1a56db;"></i>4. Third Party Platform
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">
+                        Online video consultations are powered by <strong>Jitsi Meet</strong>, an open-source video platform.
+                    </p>
+                    <ul class="mb-0">
+                        <li class="mb-2">Jitsi Meet is hosted on a public server (meet.jit.si)</li>
+                        <li class="mb-2">Your appointment details are NOT shared with Jitsi</li>
+                        <li class="mb-2">Only the video session is processed by Jitsi servers</li>
+                        <li class="mb-2">See Jitsi's privacy policy: <a href="https://jitsi.org/about/" target="_blank">jitsi.org/about/</a></li>
+                        <li>You are responsible for understanding and accepting Jitsi's terms</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 5: Patient Responsibilities -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light p-3 border-bottom-0">
+                    <h3 class="h6 mb-0" style="color: #1e3a5f; font-weight: 700;">
+                        <i class="bi bi-person-check me-2" style="color: #1a56db;"></i>5. Your Responsibilities
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li class="mb-2">Use a secure, private internet connection</li>
+                        <li class="mb-2">Choose a private location where others cannot see/hear your medical consultation</li>
+                        <li class="mb-2">Have a stable internet connection and working camera/microphone</li>
+                        <li class="mb-2">Clear your browser history after the consultation</li>
+                        <li class="mb-2">Notify us immediately if you suspect a breach or unauthorized access</li>
+                        <li>Do not record or screenshot the consultation without doctor's consent</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 6: Doctor's Responsibilities -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light p-3 border-bottom-0">
+                    <h3 class="h6 mb-0" style="color: #1e3a5f; font-weight: 700;">
+                        <i class="bi bi-stethoscope me-2" style="color: #1a56db;"></i>6. Doctor's Responsibilities
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li class="mb-2">Maintain professional privacy and confidentiality</li>
+                        <li class="mb-2">Consult from a private location free from interruptions</li>
+                        <li class="mb-2">Use secure internet connection</li>
+                        <li class="mb-2">Not record consultations without patient's explicit written consent</li>
+                        <li>Comply with all medical professional standards and ethics</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 7: When NOT to Use Video -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light p-3 border-bottom-0">
+                    <h3 class="h6 mb-0" style="color: #1e3a5f; font-weight: 700;">
+                        <i class="bi bi-exclamation-circle me-2" style="color: #ff9800;"></i>7. When to Avoid Video Consultations
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">In-person visits are recommended for:</p>
+                    <ul class="mb-0">
+                        <li class="mb-2">Physical examinations requiring touch</li>
+                        <li class="mb-2">Procedural treatments or injections</li>
+                        <li class="mb-2">Complex diagnostic assessments</li>
+                        <li class="mb-2">Patients with limited technology access</li>
+                        <li>Consultations requiring utmost confidentiality</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 8: Consent & Agreement -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light p-3 border-bottom-0">
+                    <h3 class="h6 mb-0" style="color: #1e3a5f; font-weight: 700;">
+                        <i class="bi bi-check-circle me-2" style="color: #10b981;"></i>8. Your Consent
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">
+                        By checking the "Online Video Consultation" checkbox and proceeding with booking, you:
+                    </p>
+                    <ul class="mt-2 mb-0">
+                        <li class="mb-2">Acknowledge you have read this privacy notice</li>
+                        <li class="mb-2">Understand the security limitations of video consultations</li>
+                        <li class="mb-2">Accept the risks associated with online medical consultations</li>
+                        <li class="mb-2">Agree not to hold OkiDoki liable for third-party platform breaches</li>
+                        <li>Consent to participate in video consultations on these terms</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 9: Contact Support -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light p-3 border-bottom-0">
+                    <h3 class="h6 mb-0" style="color: #1e3a5f; font-weight: 700;">
+                        <i class="bi bi-chat-left-text me-2" style="color: #1a56db;"></i>9. Questions or Concerns?
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">If you have any questions about these terms or concerns about privacy:</p>
+                    <ul class="mb-2">
+                        <li>Contact us at: <strong>support@okidoki.clinic</strong></li>
+                        <li>Or use the contact form on our website</li>
+                    </ul>
+                    <p class="mb-0 text-muted">
+                        <strong>Last Updated:</strong> May 16, 2026
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer CTA -->
+            <div class="text-center mt-5">
+                <a href="{% url 'home' %}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

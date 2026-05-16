@@ -340,6 +340,12 @@ class Appointment(models.Model):
         max_length=255, blank=True, null=True,
         help_text='Google Calendar event ID for this appointment',
     )
+    
+    # --- Jitsi Meet Integration ---
+    jitsi_meet_link = models.URLField(
+        blank=True, null=True,
+        help_text='Jitsi Meet link for the online video consultation',
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
