@@ -916,6 +916,50 @@ class DoctorListView(View):
         })
 
 
+class CategorySelectStandaloneView(View):
+    """Standalone category select page for homepage visitors. No login required, no sidebar."""
+    template_name = 'patient/category_select_standalone.html'
+
+    def get(self, request):
+        return render(request, self.template_name)
+
+
+class DoctorListStandaloneView(View):
+    """Standalone doctor list page for homepage visitors. No login required, no sidebar."""
+    template_name = 'patient/doctor_list_standalone.html'
+
+    def get(self, request):
+        category = request.GET.get('category', '')
+        doctors = Doctor.objects.filter(is_approved=True).select_related(
+            'user', 'hospital', 'specialization_category',
+        )
+        if category:
+            doctors = doctors.filter(specialization__icontains=category)
+
+        # Build JSON for map
+        doctors_json = json.dumps([
+            {
+                'name': f"Dr. {d.user.get_full_name()}",
+                'specialization': d.specialization,
+                'hospital_name': d.hospital.name if d.hospital else '',
+                'hospital_address': d.hospital.address if d.hospital else '',
+                'city': d.hospital.city if d.hospital else '',
+                'lat': float(d.hospital.latitude) if d.hospital and d.hospital.latitude else None,
+                'lng': float(d.hospital.longitude) if d.hospital and d.hospital.longitude else None,
+                'fee': str(d.consultation_fee),
+                'pk': d.pk,
+                'linkedin_url': d.linkedin_url or '',
+            }
+            for d in doctors
+        ])
+
+        return render(request, self.template_name, {
+            'doctors': doctors,
+            'doctors_json': doctors_json,
+            'category': category,
+        })
+
+
 class DoctorScheduleView(LoginRequiredMixin, View):
     """Patient views a doctor's available schedule, grouped by location."""
     template_name = 'patient/doctor_schedule.html'

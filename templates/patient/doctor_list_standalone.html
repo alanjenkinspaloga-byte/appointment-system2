@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% block title %}Doctors{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  .doctor-mini-map { height: 180px; border-radius: 0 0 18px 18px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="row g-4">
+      <!-- Always full-width for standalone (no sidebar) -->
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+          <div>
+            <h1 class="dash-title" style="margin-bottom:.1rem;">{% if category %}<span>{{ category }}</span> Doctors{% else %}All <span>Doctors</span>{% endif %}</h1>
+            <p class="dash-subtitle">Browse available specialists and view their schedule.</p>
+          </div>
+          <a href="{% url 'category_select_standalone' %}" class="btn-dash-outline-muted"><i class="bi bi-arrow-left"></i> Categories</a>
+        </div>
+
+        <!-- Filter Pills -->
+        <div class="mb-4" style="display:flex;gap:.5rem;flex-wrap:wrap;">
+          <a href="{% url 'doctor_list_standalone' %}" class="btn-mini{% if not category %}-muted{% else %}-muted" style="{% if not category %}background:var(--dn);color:#fff;{% endif %}{% endif %}" style="">
+            All
+          </a>
+          <a href="{% url 'doctor_list_standalone' %}?category=Pediatrics" class="btn-mini{% if category == 'Pediatrics' %}" style="background:var(--db);color:#fff;{% else %}-muted{% endif %}">
+            Pediatrics
+          </a>
+          <a href="{% url 'doctor_list_standalone' %}?category=Obstetrics" class="btn-mini{% if category == 'Obstetrics' %}" style="background:#e11d48;color:#fff;{% else %}-muted{% endif %}">
+            OB-GYN
+          </a>
+          <a href="{% url 'doctor_list_standalone' %}?category=Dentistry" class="btn-mini{% if category == 'Dentistry' %}" style="background:#0891b2;color:#fff;{% else %}-muted{% endif %}">
+            Dentistry
+          </a>
+        </div>
+
+        <!-- Doctor Cards -->
+        {% if doctors %}
+        <div class="row g-3" id="doctorCards">
+          {% for doctor in doctors %}
+          <div class="col-md-6 col-xl-4">
+            <div class="dr-card">
+              <!-- Profile Picture Section -->
+              {% if doctor.profile_picture %}
+              <div style="height: 200px; background: linear-gradient(135deg, #2563eb, #7c3aed); display: flex; align-items: center; justify-content: center; border-radius: 18px 18px 0 0; overflow: hidden;">
+                <img src="{{ doctor.profile_picture.url }}" alt="Dr. {{ doctor.user.get_full_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+              </div>
+              {% else %}
+              <div style="height: 200px; background: linear-gradient(135deg, #2563eb, #7c3aed); display: flex; align-items: center; justify-content: center; border-radius: 18px 18px 0 0;">
+                <i class="bi bi-person-circle" style="font-size: 80px; color: rgba(255, 255, 255, 0.5);"></i>
+              </div>
+              {% endif %}
+              
+              <div class="dr-card-body">
+                <div class="dr-name"><i class="bi bi-person-badge me-1" style="color:var(--db);"></i>Dr. {{ doctor.user.get_full_name }}</div>
+                
+                <!-- Credentials Section -->
+                <div class="dr-meta mt-2" style="font-size: 0.8rem;">
+                  {% if 'Pediatrics' in doctor.specialization %}
+                    <span class="spec-pill spec-peds">{{ doctor.specialization }}</span>
+                  {% elif 'Obstet' in doctor.specialization or 'Gynecol' in doctor.specialization %}
+                    <span class="spec-pill spec-obgyn">{{ doctor.specialization }}</span>
+                  {% elif 'Dent' in doctor.specialization %}
+                    <span class="spec-pill spec-dent">{{ doctor.specialization }}</span>
+                  {% else %}
+                    <span class="spec-pill spec-default">{{ doctor.specialization }}</span>
+                  {% endif %}
+                </div>
+
+                <!-- Professional Details -->
+                {% if doctor.license_number %}
+                <p class="dr-meta mt-2 mb-1"><i class="bi bi-card-text me-1" style="color: #059669;"></i><strong>PRC License:</strong> {{ doctor.license_number }}</p>
+                {% endif %}
+                
+                {% if doctor.years_of_experience %}
+                <p class="dr-meta mb-1"><i class="bi bi-award me-1" style="color: #f59e0b;"></i><strong>Experience:</strong> {{ doctor.years_of_experience }} years</p>
+                {% endif %}
+                
+                {% if doctor.medical_school %}
+                <p class="dr-meta mb-1"><i class="bi bi-mortarboard me-1" style="color: #3b82f6;"></i><strong>Medical School:</strong> {{ doctor.medical_school }}</p>
+                {% endif %}
+                
+                {% if doctor.hospital %}
+                <p class="dr-meta mt-2 mb-0"><i class="bi bi-hospital me-1"></i><strong>Clinic:</strong> {{ doctor.hospital.name }}</p>
+                <p class="dr-meta mb-0"><i class="bi bi-geo-alt me-1"></i>{{ doctor.hospital.address }}</p>
+                {% endif %}
+                
+                <p class="mt-2 mb-0" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;color:var(--dn);font-size:.95rem;">
+                  <i class="bi bi-cash me-1" style="color:#059669;"></i>₱{{ doctor.consultation_fee }} / visit
+                </p>
+              </div>
+              {% if doctor.hospital and doctor.hospital.latitude and doctor.hospital.longitude %}
+              <div id="map-{{ doctor.pk }}" class="doctor-mini-map"
+                   data-lat="{{ doctor.hospital.latitude }}"
+                   data-lng="{{ doctor.hospital.longitude }}"
+                   data-name="Dr. {{ doctor.user.get_full_name }}"
+                   data-hospital="{{ doctor.hospital.name }}"
+                   data-spec="{{ doctor.specialization }}"></div>
+              {% endif %}
+              <div class="dr-card-footer">
+                <a href="{% url 'doctor_schedule' doctor.pk %}" class="btn-dash-primary" style="flex:1;justify-content:center;"><i class="bi bi-calendar-check"></i> View Schedule</a>
+                {% if doctor.hospital and doctor.hospital.latitude and doctor.hospital.longitude %}
+                <a href="https://www.google.com/maps?q={{ doctor.hospital.latitude }},{{ doctor.hospital.longitude }}"
+                   target="_blank" class="btn-mini-green"><i class="bi bi-map"></i></a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="dash-card">
+          <div class="dash-empty"><i class="bi bi-search"></i><p>No doctors found for this category.</p></div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function () {
+    function makeIcon(color) {
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="22" height="33">
+            <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24S24 21 24 12C24 5.373 18.627 0 12 0z"
+                  fill="${color}" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="12" cy="12" r="5" fill="#fff"/>
+        </svg>`;
+        return L.divIcon({
+            html: svg, className: '',
+            iconSize: [22, 33], iconAnchor: [11, 33], popupAnchor: [0, -33],
+        });
+    }
+
+    document.querySelectorAll('.doctor-mini-map').forEach(el => {
+        const lat  = parseFloat(el.dataset.lat);
+        const lng  = parseFloat(el.dataset.lng);
+        const name = el.dataset.name;
+        const hosp = el.dataset.hospital;
+        const spec = el.dataset.spec;
+
+        if (isNaN(lat) || isNaN(lng)) return;
+
+        const isPeds = spec.toLowerCase().includes('pediatric');
+        const color  = isPeds ? '#0d6efd' : '#dc3545';
+        const icon   = makeIcon(color);
+
+        const map = L.map(el, {
+            center: [lat, lng],
+            zoom: 18,
+            zoomControl: false,
+            scrollWheelZoom: false,
+            dragging: false,
+            doubleClickZoom: false,
+            attributionControl: true,
+        });
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            maxZoom: 20,
+        }).addTo(map);
+
+        L.marker([lat, lng], { icon })
+            .addTo(map)
+            .bindPopup(`<strong>${name}</strong><br><em>${hosp}</em>`)
+            .openPopup();
+    });
+})();
+</script>
+{% endblock %}

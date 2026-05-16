@@ -110,6 +110,13 @@ urlpatterns = [
          views.CategorySelectView.as_view(), name='category_select'),
     path('patient/doctors/',
          views.DoctorListView.as_view(), name='doctor_list'),
+
+    # ---- STANDALONE DOCTOR BROWSING (for homepage links) ----
+    path('browse/categories/',
+         views.CategorySelectStandaloneView.as_view(), name='category_select_standalone'),
+    path('browse/doctors/',
+         views.DoctorListStandaloneView.as_view(), name='doctor_list_standalone'),
+
     path('patient/doctors/<int:doctor_id>/schedule/',
          views.DoctorScheduleView.as_view(), name='doctor_schedule'),
     path('patient/book/<int:availability_id>/',
