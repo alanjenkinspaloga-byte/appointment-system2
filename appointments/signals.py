@@ -64,34 +64,6 @@ def appointment_notification(sender, instance, created, **kwargs):
                 import logging
                 email_logger = logging.getLogger(__name__)
                 email_logger.error(f"Error sending appointment confirmation email for appointment {instance.id}: {str(e)}")
-            
-            # Create Google Meet event if this is an online consultation
-            # and doctor has Google Calendar connected
-            if instance.is_online_consultation and instance.doctor.is_google_calendar_connected:
-                try:
-                    from .google_calendar_utils import create_google_meet_event
-                    import logging
-                    logger = logging.getLogger(__name__)
-                    
-                    meet_link = create_google_meet_event(instance)
-                    if meet_link:
-                        instance.google_meet_link = meet_link
-                        instance.save(update_fields=['google_meet_link'])
-                        
-                        # Notify both doctor and patient about the Meet link
-                        Notification.objects.create(
-                            user=patient_user,
-                            notif_type='appointment_confirmed',
-                            title='Google Meet Link Ready',
-                            message=f'Your Google Meet link for the consultation is ready. The link will be sent to both your email and the doctor\'s email.',
-                        )
-                        logger.info(f"Google Meet event created for appointment {instance.id}: {meet_link}")
-                    else:
-                        logger.warning(f"Failed to create Google Meet event for appointment {instance.id}")
-                except Exception as e:
-                    import logging
-                    logger = logging.getLogger(__name__)
-                    logger.error(f"Error creating Google Meet event for appointment {instance.id}: {str(e)}")
         elif status == 'cancelled':
             Notification.objects.create(
                 user=patient_user,

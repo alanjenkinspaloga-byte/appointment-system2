@@ -5,7 +5,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
-from . import google_oauth_views
 
 urlpatterns = [
 
@@ -95,14 +94,6 @@ urlpatterns = [
          views.DoctorTodayPatientsView.as_view(), name='doctor_today_patients'),
     path('doctor/payment/<int:appointment_id>/',
          views.RecordPaymentView.as_view(), name='record_payment'),
-
-    # ---- GOOGLE CALENDAR & MEET INTEGRATION ----
-    path('google-oauth/authorize/',
-         google_oauth_views.google_oauth_authorize, name='google_oauth_authorize'),
-    path('google-oauth-callback/',
-         google_oauth_views.google_oauth_callback, name='google_oauth_callback'),
-    path('google-calendar/disconnect/',
-         google_oauth_views.disconnect_google_calendar, name='disconnect_google_calendar'),
 
     # ---- PATIENT URLS ----
     path('patient/dashboard/',
