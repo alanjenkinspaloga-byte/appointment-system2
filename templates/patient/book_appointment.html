@@ -156,9 +156,8 @@
                 <span class="time" id="selectedTimeDisplay">—</span>
               </div>
 
-              <!-- Hidden & Regular Time Inputs -->
-              <input type="hidden" name="appointment_time" id="id_appointment_time_hidden" value="">
-              {{ form.appointment_time }}
+              <!-- Hidden Time Input (populated by modal selection) -->
+              <input type="hidden" name="appointment_time" id="id_appointment_time" value="">
 
               <!-- Choose Time Slot Button -->
               <div class="form-section">
@@ -450,16 +449,12 @@
                             <label class="form-label fw-bold">
                                 <i class="bi bi-calendar-event me-2" style="color: var(--blue-primary);"></i>
                                 Time Slot:
-                                <span class="badge bg-primary" id="selectedTimeDisplay">Not selected</span>
+                                <span class="badge bg-primary" id="selectedTimeDisplay2">Not selected</span>
                             </label>
-                            <input type="hidden" name="appointment_time" id="id_appointment_time_hidden" value="">
-                            {{ form.appointment_time }}
+                            <input type="hidden" name="appointment_time" id="id_appointment_time2" value="">
                             <button type="button" class="btn btn-primary btn-lg mt-2 w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#timeSlotsModal" style="border-radius: 10px; font-weight: 600;">
                                 <i class="bi bi-clock me-2"></i>Choose Time Slot
                             </button>
-                            {% for error in form.appointment_time.errors %}
-                            <div class="text-danger small"><i class="bi bi-exclamation-triangle me-1"></i>{{ error }}</div>
-                            {% endfor %}
                         </div>
 
                         <!-- Appointment Type Selection -->
@@ -637,8 +632,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         const timeSlotBtns = document.querySelectorAll('.time-slot-btn');
         const selectedTimeDisplay = document.getElementById('selectedTimeDisplay');
-        const hiddenTimeInput = document.getElementById('id_appointment_time_hidden');
-        const regularTimeInput = document.getElementById('id_appointment_time');
+        const timeInput = document.getElementById('id_appointment_time');
         const submitBtn = document.getElementById('submitBtn');
         const timeSlotsModal = document.getElementById('timeSlotsModal');
 
@@ -654,9 +648,8 @@
             const [hours, minutes] = timeValue.split(':');
             const displayTime = `${hours}:${minutes}`;
 
-            // Update inputs
-            hiddenTimeInput.value = timeValue;
-            regularTimeInput.value = displayTime;
+            // Update hidden input for form submission
+            timeInput.value = displayTime;
 
             // Update display
             selectedTimeDisplay.textContent = displayTime;
@@ -682,7 +675,7 @@
         });
 
         // Restore selection if form was re-rendered with errors
-        const existingValue = regularTimeInput.value;
+        const existingValue = timeInput.value;
         if (existingValue) {
             const [hours, minutes] = existingValue.split(':');
             const targetTime = `${hours}:${minutes}:00`;
