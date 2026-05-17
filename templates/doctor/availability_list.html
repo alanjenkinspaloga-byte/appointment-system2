@@ -46,7 +46,9 @@
                   <td style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;color:var(--dn);">{{ slot.date }}</td>
                   <td class="td-meta">{{ slot.start_time }} – {{ slot.end_time }}</td>
                   <td class="td-meta">
-                    {% if slot.hospital %}
+                    {% if slot.location_name %}
+                      <i class="bi bi-geo-alt me-1" style="color:var(--db);"></i>{{ slot.location_name }}
+                    {% elif slot.hospital %}
                       <i class="bi bi-hospital me-1" style="color:var(--db);"></i>{{ slot.hospital.name }}
                       {% if slot.hospital.city %}<br><small>{{ slot.hospital.city }}</small>{% endif %}
                     {% elif slot.effective_hospital %}

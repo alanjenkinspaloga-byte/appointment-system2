@@ -34,8 +34,6 @@ def google_calendar_context(request):
     # Check if user is a doctor
     if hasattr(request.user, 'doctor_profile'):
         doctor = request.user.doctor_profile
-        context['google_calendar_connected'] = doctor.is_google_calendar_connected
-        context['google_calendar_enabled'] = doctor.is_google_calendar_connected
         
         # Count active meetings (in_progress status for today)
         active_meetings = Appointment.objects.filter(

@@ -20,10 +20,6 @@
        class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'doctor_history' %}active{% endif %}">
         <i class="bi bi-clock-history me-2"></i> History
     </a>
-    <a href="{% url 'google_oauth_authorize' %}"
-       class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'google_oauth_authorize' %}active{% endif %}">
-        <i class="bi bi-laptop me-2"></i> Google Meet
-    </a>
     <a href="{% url 'doctor_settings' %}"
        class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'doctor_settings' %}active{% endif %}">
         <i class="bi bi-gear me-2"></i> Clinic Settings

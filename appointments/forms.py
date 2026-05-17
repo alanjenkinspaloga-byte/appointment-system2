@@ -210,11 +210,14 @@ class AvailabilityForm(forms.ModelForm):
     class Meta:
         model = Availability
         fields = [
-            'hospital', 'date', 'start_time', 'end_time',
+            'hospital', 'location_name', 'date', 'start_time', 'end_time',
             'max_patients', 'is_available', 'accepting_status',
         ]
         widgets = {
             'hospital': forms.Select(attrs={'class': 'form-select'}),
+            'location_name': forms.TextInput(attrs={
+                'class': 'form-control', 'placeholder': 'e.g., Main Clinic, Branch Office',
+            }),
             'date': forms.DateInput(attrs={
                 'class': 'form-control', 'type': 'date',
             }),
@@ -236,11 +239,13 @@ class AvailabilityForm(forms.ModelForm):
             ),
         }
         labels = {
-            'hospital': 'Location / Clinic',
+            'hospital': 'Location / Clinic (Select from dropdown)',
+            'location_name': 'Or enter location manually',
             'accepting_status': 'Accepting Status',
         }
         help_texts = {
-            'hospital': 'Select the clinic/hospital for this schedule slot.',
+            'hospital': 'Select an existing clinic/hospital, or leave blank to use your primary clinic.',
+            'location_name': 'Enter a custom clinic/location name if it\'s not in the dropdown above.',
             'accepting_status': 'Set to "Paused" when you are currently at a different location.',
         }
 

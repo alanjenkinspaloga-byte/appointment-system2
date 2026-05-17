@@ -198,16 +198,6 @@ class Doctor(models.Model):
         help_text='Professional profile picture for credibility and recognition',
     )
 
-    # --- Google Calendar Integration ---
-    is_google_calendar_connected = models.BooleanField(
-        default=False,
-        help_text='Whether the doctor has connected their Google Calendar account',
-    )
-    google_calendar_token = models.TextField(
-        blank=True, null=True,
-        help_text='Encrypted Google OAuth 2.0 token for calendar access',
-    )
-
     # --- Online Consultation Settings ---
     accepts_online_consultations = models.BooleanField(
         default=True,
@@ -263,6 +253,11 @@ class Availability(models.Model):
         related_name='availabilities',
         help_text='Location for this slot (leave blank to inherit doctor\'s primary clinic).',
     )
+    # Optional manual location name (for custom clinic entry)
+    location_name = models.CharField(
+        max_length=200, null=True, blank=True,
+        help_text='Enter a custom clinic/location name if not selecting from the dropdown above.',
+    )
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -285,15 +280,24 @@ class Availability(models.Model):
 
     @property
     def effective_hospital(self):
-        """Returns slot's hospital, falling back to doctor's primary clinic."""
-        return self.hospital or self.doctor.hospital
+        """Returns slot's custom location, hospital name, or falls back to doctor's primary clinic."""
+        if self.location_name:
+            return self.location_name
+        if self.hospital:
+            return self.hospital
+        return self.doctor.hospital
 
     @property
     def is_paused(self):
         return self.accepting_status == 'paused'
 
     def __str__(self):
-        loc = self.hospital.name if self.hospital else 'Primary'
+        if self.location_name:
+            loc = self.location_name
+        elif self.hospital:
+            loc = self.hospital.name
+        else:
+            loc = self.doctor.hospital.name if self.doctor.hospital else 'Primary'
         return (
             f"Dr. {self.doctor.user.get_full_name()} | "
             f"{self.date} {self.start_time}–{self.end_time} @ {loc}"
@@ -333,18 +337,10 @@ class Appointment(models.Model):
         max_length=10, choices=PAYMENT_STATUS, default='unpaid',
     )
 
-    # --- Google Calendar & Meet Integration ---
+    # --- Online Consultation Settings ---
     is_online_consultation = models.BooleanField(
         default=False,
-        help_text='Whether this is an online consultation with Google Meet',
-    )
-    google_meet_link = models.URLField(
-        blank=True, null=True,
-        help_text='Google Meet link for the online consultation',
-    )
-    google_calendar_event_id = models.CharField(
-        max_length=255, blank=True, null=True,
-        help_text='Google Calendar event ID for this appointment',
+        help_text='Whether this is an online consultation via Jitsi Meet',
     )
     
     # --- Jitsi Meet Integration ---

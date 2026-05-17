@@ -4,6 +4,357 @@
 
 {% block content %}
 <style>
+/* ── OkiDoki Dashboard Design System ── */
+:root{--db:#2563eb;--di:#7c3aed;--dn:#0a1628;--dbg:#f0f5ff;}
+
+.dash-page{background:var(--dbg);min-height:calc(100vh - 72px);padding:2rem 0 3rem;}
+
+.dash-sidebar-card{background:var(--dn);border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(6,14,31,.22);border:none;}
+.dash-sidebar-header{padding:1.2rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:.75rem;}
+.dash-sidebar-badge{width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,var(--db),var(--di));display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.15rem;}
+.dash-sidebar-role{color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:.88rem;}
+.dash-sidebar-uname{color:rgba(255,255,255,.45);font-size:.73rem;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;}
+.dash-sidebar-card .list-group-item{background:transparent;border:none;border-radius:0!important;color:rgba(255,255,255,.55);padding:.65rem 1.25rem;font-family:'Inter',sans-serif;font-size:.875rem;font-weight:500;border-left:3px solid transparent;transition:background .18s,color .18s,border-color .18s;}
+.dash-sidebar-card .list-group-item:hover{background:rgba(255,255,255,.06);color:#fff;border-left-color:rgba(99,102,241,.5);}
+.dash-sidebar-card .list-group-item.active{background:rgba(37,99,235,.18)!important;color:#fff!important;border-left-color:#2563eb;}
+
+.dash-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.65rem;color:var(--dn);margin-bottom:.2rem;line-height:1.2;}
+.dash-title span{background:linear-gradient(90deg,var(--db),var(--di));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.dash-subtitle{color:#64748b;font-family:'Inter',sans-serif;font-size:.875rem;}
+
+.dash-card{background:#fff;border-radius:18px;border:1px solid #e8eef8;box-shadow:0 2px 14px rgba(6,14,31,.05);overflow:hidden;margin-bottom:1.5rem;}
+.dash-card-header{padding:.9rem 1.5rem;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:.9rem;color:var(--dn);}
+.dash-card-header .hi{color:var(--db);margin-right:.45rem;}
+.dash-card-body{padding:1.25rem 1.5rem;}
+
+.btn-dash-primary{background:linear-gradient(135deg,var(--db),var(--di));color:#fff;border:none;border-radius:12px;padding:.55rem 1.3rem;font-weight:600;font-family:'Inter',sans-serif;font-size:.875rem;transition:opacity .2s,transform .2s;text-decoration:none;display:inline-flex;align-items:center;gap:.45rem;}
+.btn-dash-primary:hover{opacity:.88;transform:translateY(-1px);color:#fff;}
+.btn-dash-outline{background:transparent;color:var(--db);border:1.5px solid var(--db);border-radius:12px;padding:.52rem 1.3rem;font-weight:600;font-family:'Inter',sans-serif;font-size:.875rem;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:.45rem;}
+.btn-dash-outline:hover{background:var(--db);color:#fff;}
+.btn-dash-outline-muted{background:transparent;color:#64748b;border:1.5px solid #cbd5e1;border-radius:12px;padding:.52rem 1.3rem;font-weight:600;font-family:'Inter',sans-serif;font-size:.875rem;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:.45rem;}
+.btn-dash-outline-muted:hover{background:#e2e8f0;color:var(--dn);}
+
+.info-row{display:flex;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid #f1f5f9;font-family:'Inter',sans-serif;font-size:.9rem;}
+.info-row:last-child{border-bottom:none;}
+.info-label{color:#64748b;font-weight:600;}
+.info-value{color:var(--dn);font-weight:700;}
+
+.time-slot-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(80px, 1fr));gap:10px;max-height:350px;overflow-y:auto;padding:1rem;}
+
+.time-slot-btn{padding:10px 12px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s ease;border:2px solid #cbd5e1;background:#fff;color:var(--dn);border-radius:10px;white-space:nowrap;min-height:44px;font-family:'Inter',sans-serif;}
+.time-slot-btn:hover:not(:disabled){background-color:var(--db);color:#fff;border-color:var(--db);transform:translateY(-2px);box-shadow:0 4px 12px rgba(37,99,235,.3);}
+.time-slot-btn.selected{background-color:#1a56db;color:#fff;border-color:#1a56db;box-shadow:0 6px 20px rgba(26,86,219,.4);font-weight:700;}
+.time-slot-btn:disabled{background-color:#f1f5f9;color:#94a3b8;cursor:not-allowed;border-color:#cbd5e1;}
+
+.selected-time-display{background:linear-gradient(135deg,#dcfce7,#bbf7d0);border:2px solid #86efac;border-radius:12px;padding:1rem;color:#14532d;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;text-align:center;margin-bottom:1.5rem;}
+.selected-time-display .time{font-size:1.5rem;display:block;margin-bottom:.25rem;}
+.selected-time-display .label{font-size:.8rem;color:#22c55e;}
+
+.appointment-type-card{background:#f0f9ff;border:2px solid #93c5fd;border-radius:14px;padding:1.25rem;border-left:4px solid var(--db);}
+
+.form-section{margin-bottom:1.5rem;}
+.form-section-label{display:flex;align-items:center;gap:.5rem;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:.95rem;color:var(--dn);margin-bottom:1rem;}
+.form-section-label i{color:var(--db);font-size:1.1rem;}
+
+.form-control, .form-select{border:1.5px solid #e2e8f0;border-radius:10px;padding:.6rem .85rem;font-family:'Inter',sans-serif;font-size:.875rem;transition:all .2s;}
+.form-control:focus, .form-select:focus{border-color:var(--db);box-shadow:0 0 0 3px rgba(37,99,235,.1);outline:none;}
+
+.alert-warning-custom{background:#fef3c7;border:1.5px solid #fde68a;border-radius:12px;padding:1rem;color:#92400e;font-family:'Inter',sans-serif;font-size:.875rem;}
+.alert-warning-custom strong{display:block;margin-bottom:.5rem;font-size:.95rem;}
+.alert-warning-custom ul{margin:0;padding-left:1.5rem;}
+.alert-warning-custom li{margin-bottom:.4rem;}
+
+.dash-alert-info{background:#dbeafe;border:1.5px solid #bfdbfe;border-radius:12px;padding:1rem;color:#1e40af;font-family:'Inter',sans-serif;font-size:.875rem;}
+
+@media (max-width: 768px) {
+  .dash-title { font-size: 1.4rem; }
+  .time-slot-grid { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; }
+  .btn-dash-primary, .btn-dash-outline { width: 100%; margin-bottom: 0.5rem; }
+  .info-row { flex-direction: column; gap: 0.5rem; }
+}
+</style>
+
+<div class="dash-page">
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="row g-4">
+
+      <!-- ── Sidebar ── -->
+      <div class="col-md-3 col-lg-2">
+        <div class="dash-sidebar-card">
+          <div class="dash-sidebar-header">
+            <div class="dash-sidebar-badge"><i class="bi bi-heart-pulse"></i></div>
+            <div>
+              <div class="dash-sidebar-role">Patient</div>
+              <div class="dash-sidebar-uname">{{ request.user.get_full_name }}</div>
+            </div>
+          </div>
+          {% include 'patient/sidebar.html' %}
+        </div>
+      </div>
+
+      <!-- ── Main Content ── -->
+      <div class="col-md-9 col-lg-10">
+        <div class="mb-4">
+          <h1 class="dash-title">Book <span>Appointment</span></h1>
+          <p class="dash-subtitle"><i class="bi bi-calendar-plus me-1"></i>Select a time slot and confirm your booking.</p>
+        </div>
+
+        <!-- Doctor Info Card -->
+        <div class="dash-card">
+          <div class="dash-card-header"><span><i class="bi bi-person-badge hi"></i>Doctor Information</span></div>
+          <div class="dash-card-body">
+            <div class="info-row">
+              <span class="info-label">Doctor</span>
+              <span class="info-value">Dr. {{ availability.doctor.user.get_full_name }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Specialization</span>
+              <span class="info-value">{{ availability.doctor.specialization }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Date</span>
+              <span class="info-value">{{ availability.date }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Available Hours</span>
+              <span class="info-value">{{ availability.start_time|time:"H:i" }} – {{ availability.end_time|time:"H:i" }}</span>
+            </div>
+            {% if availability.location_name %}
+            <div class="info-row">
+              <span class="info-label">Location</span>
+              <span class="info-value"><i class="bi bi-geo-alt me-1"></i>{{ availability.location_name }}</span>
+            </div>
+            {% elif availability.hospital %}
+            <div class="info-row">
+              <span class="info-label">Location</span>
+              <span class="info-value"><i class="bi bi-hospital me-1"></i>{{ availability.hospital.name }}, {{ availability.hospital.city }}</span>
+            </div>
+            {% elif availability.doctor.hospital %}
+            <div class="info-row">
+              <span class="info-label">Location</span>
+              <span class="info-value"><i class="bi bi-hospital me-1"></i>{{ availability.doctor.hospital.name }}, {{ availability.doctor.hospital.city }}</span>
+            </div>
+            {% endif %}
+            <div class="info-row">
+              <span class="info-label">Consultation Fee</span>
+              <span class="info-value" style="color:#059669;font-size:1.1rem;">₱{{ availability.doctor.consultation_fee }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Time Slot Selection Card -->
+        <div class="dash-card">
+          <div class="dash-card-header"><span><i class="bi bi-clock hi"></i>Select Time Slot</span></div>
+          <div class="dash-card-body">
+            <form method="post" id="bookingForm">
+              {% csrf_token %}
+
+              <!-- Time Selection Display -->
+              <div class="selected-time-display" id="timeDisplayBox" style="display:none;">
+                <span class="label">Selected Time</span>
+                <span class="time" id="selectedTimeDisplay">—</span>
+              </div>
+
+              <!-- Hidden & Regular Time Inputs -->
+              <input type="hidden" name="appointment_time" id="id_appointment_time_hidden" value="">
+              {{ form.appointment_time }}
+
+              <!-- Choose Time Slot Button -->
+              <div class="form-section">
+                <button type="button" class="btn-dash-primary w-100" data-bs-toggle="modal" data-bs-target="#timeSlotsModal" style="padding:0.7rem;font-size:.95rem;min-height:50px;">
+                  <i class="bi bi-calendar-event"></i> Choose Time Slot
+                </button>
+              </div>
+
+              {% for error in form.appointment_time.errors %}
+              <div class="dash-alert-info" style="color:#dc2626;background:#fee2e2;border-color:#fecaca;margin-bottom:1rem;">
+                <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+              </div>
+              {% endfor %}
+
+              <!-- Appointment Type Selection -->
+              <div class="form-section">
+                <div class="form-section-label">
+                  <i class="bi bi-info-circle"></i>Appointment Type
+                </div>
+
+                {% if availability.doctor.accepts_online_consultations %}
+                <div class="appointment-type-card">
+                  <div class="form-check form-check-lg">
+                    <input class="form-check-input" type="checkbox" id="id_is_online_consultation" name="is_online_consultation" style="width:1.5rem;height:1.5rem;cursor:pointer;">
+                    <label class="form-check-label" for="id_is_online_consultation" style="cursor:pointer;font-family:'Inter',sans-serif;font-weight:500;color:var(--dn);margin-top:0.2rem;">
+                      <strong>Online Video Consultation</strong>
+                      <br>
+                      <small style="color:#64748b;">Secure video call instead of visiting the clinic in person</small>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Privacy Notice -->
+                <div class="alert-warning-custom" style="margin-top:1rem;">
+                  <i class="bi bi-shield-exclamation me-2"></i>
+                  <strong>Privacy & Confidentiality Notice</strong>
+                  <ul style="margin-top:.5rem;">
+                    <li>Video consultations use secure encryption</li>
+                    <li>Avoid sharing highly sensitive personal information</li>
+                    <li>For confidential matters, consider in-person visit</li>
+                    <li><a href="{% url 'video_consultation_terms' %}" target="_blank" style="color:#92400e;font-weight:600;text-decoration:none;">Read Video Consultation Terms <i class="bi bi-box-arrow-up-right ms-1"></i></a></li>
+                  </ul>
+                </div>
+                {% else %}
+                <div class="dash-alert-info">
+                  <i class="bi bi-info-circle me-2"></i>
+                  <strong>In-Person Only:</strong> This doctor currently only accepts in-person appointments at the clinic.
+                </div>
+                {% endif %}
+
+                {% for error in form.is_online_consultation.errors %}
+                <div class="dash-alert-info" style="color:#dc2626;background:#fee2e2;border-color:#fecaca;margin-top:1rem;">
+                  <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+                </div>
+                {% endfor %}
+              </div>
+
+              <!-- Reason/Notes -->
+              <div class="form-section">
+                <div class="form-section-label">
+                  <i class="bi bi-file-text"></i>Reason for Visit
+                </div>
+                {% for field in form %}
+                  {% if field.name == 'reason' %}
+                    {{ field }}
+                    <small style="color:#64748b;display:block;margin-top:.4rem;">Brief description of your concern or reason for the visit</small>
+                    {% for error in field.errors %}
+                    <div class="dash-alert-info" style="color:#dc2626;background:#fee2e2;border-color:#fecaca;margin-top:.5rem;">
+                      <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+                    </div>
+                    {% endfor %}
+                  {% endif %}
+                {% endfor %}
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="d-flex gap-2 flex-wrap" style="margin-top:2rem;">
+                <button type="submit" class="btn-dash-primary" id="submitBtn" disabled style="flex:1;min-height:48px;font-size:.95rem;padding:.7rem;">
+                  <i class="bi bi-check-lg"></i> Confirm Booking
+                </button>
+                <a href="{% url 'doctor_schedule' availability.doctor.pk %}" class="btn-dash-outline-muted" style="flex:1;min-height:48px;font-size:.95rem;padding:.7rem;">
+                  <i class="bi bi-arrow-left"></i> Back
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- How It Works Card -->
+        <div class="dash-card">
+          <div class="dash-card-header"><span><i class="bi bi-lightbulb hi"></i>How It Works</span></div>
+          <div class="dash-card-body">
+            <ul style="margin:0;padding-left:1.5rem;font-family:'Inter',sans-serif;font-size:.9rem;color:#475569;">
+              <li style="margin-bottom:.6rem;"><strong>Select Time:</strong> Choose from available time slots within doctor's hours</li>
+              <li style="margin-bottom:.6rem;"><strong>Queue System:</strong> Each doctor has independent queues based on appointment time</li>
+              <li style="margin-bottom:.6rem;"><strong>Confirm:</strong> Submit your booking and get confirmation immediately</li>
+              <li><strong>Appointment Ready:</strong> Doctor will call you when it's your turn</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Time Slots Modal -->
+<div class="modal fade" id="timeSlotsModal" tabindex="-1" aria-labelledby="timeSlotsLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="border:none;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.15);">
+      <div class="modal-header" style="background:linear-gradient(135deg,var(--db),var(--di));color:#fff;border:none;border-radius:16px 16px 0 0;padding:1.25rem 1.5rem;">
+        <h5 class="modal-title" id="timeSlotsLabel" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;">
+          <i class="bi bi-clock me-2"></i>Available Time Slots - {{ availability.date }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" style="padding:1.5rem;">
+        <div class="time-slot-grid">
+          {% for time in available_times %}
+          <button type="button" class="time-slot-btn" data-time="{{ time }}" title="Available at {{ time|time:'H:i' }}">
+            {{ time|time:"H:i" }}
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="modal-footer" style="border-top:1px solid #e2e8f0;padding:1rem 1.5rem;">
+        <button type="button" class="btn-dash-outline-muted" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const timeSlotBtns = document.querySelectorAll('.time-slot-btn');
+    const selectedTimeDisplay = document.getElementById('selectedTimeDisplay');
+    const timeDisplayBox = document.getElementById('timeDisplayBox');
+    const hiddenTimeInput = document.getElementById('id_appointment_time_hidden');
+    const regularTimeInput = document.getElementById('id_appointment_time');
+    const submitBtn = document.getElementById('submitBtn');
+    const timeSlotsModal = document.getElementById('timeSlotsModal');
+
+    // Function to set selected time
+    function setSelectedTime(btn) {
+      // Remove previous selection
+      timeSlotBtns.forEach(b => b.classList.remove('selected'));
+
+      // Mark as selected
+      btn.classList.add('selected');
+
+      const timeValue = btn.getAttribute('data-time');
+      const [hours, minutes] = timeValue.split(':');
+      const displayTime = `${hours}:${minutes}`;
+
+      // Update inputs
+      hiddenTimeInput.value = timeValue;
+      regularTimeInput.value = displayTime;
+
+      // Update display
+      selectedTimeDisplay.textContent = displayTime;
+      timeDisplayBox.style.display = 'block';
+
+      // Enable submit button
+      submitBtn.disabled = false;
+
+      // Close modal after selection
+      const modal = bootstrap.Modal.getInstance(timeSlotsModal);
+      if (modal) {
+        modal.hide();
+      }
+    }
+
+    // Add click handlers to time slot buttons
+    timeSlotBtns.forEach(btn => {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        setSelectedTime(this);
+      });
+    });
+
+    // Restore selection if form was re-rendered with errors
+    const existingValue = regularTimeInput.value;
+    if (existingValue) {
+      const [hours, minutes] = existingValue.split(':');
+      const targetTime = `${hours}:${minutes}:00`;
+
+      timeSlotBtns.forEach(btn => {
+        if (btn.getAttribute('data-time') === targetTime ||
+            btn.getAttribute('data-time').startsWith(`${hours}:${minutes}`)) {
+          setSelectedTime(btn);
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}
+<style>
     @media (max-width: 576px) {
         .container-fluid { padding: 1rem 0.75rem; }
         h2 { font-size: 1.25rem; margin-bottom: 1.5rem; }
@@ -191,7 +542,7 @@
                         <li>Select a time slot within doctor's office hours</li>
                         <li>Each doctor has independent queues</li>
                         <li>Queue position based on appointment time (earlier = priority)</li>
-                        <li><strong>Online Consultations:</strong> If available, check the "Online Consultation via Google Meet" option to join a video call instead of visiting the clinic</li>
+                        <li>Confirm your appointment and wait for doctor to call you</li>
                     </ul>
                 </div>
             </div>
