@@ -251,7 +251,7 @@
 </div>
 
 <!-- Time Slots Modal -->
-<div class="modal fade" id="timeSlotsModal" tabindex="-1" aria-labelledby="timeSlotsLabel">
+<div class="modal fade" id="timeSlotsModal" tabindex="-1" aria-labelledby="timeSlotsLabel" aria-hidden="true" inert>
   <div class="modal-dialog modal-lg">
     <div class="modal-content" style="border:none;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.15);">
       <div class="modal-header" style="background:linear-gradient(135deg,var(--db),var(--di));color:#fff;border:none;border-radius:16px 16px 0 0;padding:1.25rem 1.5rem;">
@@ -263,7 +263,7 @@
       <div class="modal-body" style="padding:1.5rem;">
         <div class="time-slot-grid">
           {% for time in available_times %}
-          <button type="button" class="time-slot-btn" data-time="{{ time }}" title="Available at {{ time|time:'H:i' }}">
+          <button type="button" class="time-slot-btn" data-time="{{ time|time:'H:i:s' }}" title="Available at {{ time|time:'H:i' }}">
             {{ time|time:"H:i" }}
           </button>
           {% endfor %}
@@ -324,6 +324,22 @@
         e.preventDefault();
         setSelectedTime(this);
       });
+    });
+
+    // Manage aria-hidden and inert attributes properly with modal lifecycle
+    timeSlotsModal.addEventListener('show.bs.modal', function () {
+      timeSlotsModal.setAttribute('aria-hidden', 'false');
+      timeSlotsModal.removeAttribute('inert');
+    });
+
+    timeSlotsModal.addEventListener('hide.bs.modal', function () {
+      timeSlotsModal.setAttribute('aria-hidden', 'true');
+      timeSlotsModal.setAttribute('inert', '');
+    });
+
+    timeSlotsModal.addEventListener('hidden.bs.modal', function () {
+      timeSlotsModal.setAttribute('aria-hidden', 'true');
+      timeSlotsModal.setAttribute('inert', '');
     });
 
     // Restore selection if form was re-rendered with errors
