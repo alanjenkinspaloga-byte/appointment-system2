@@ -294,12 +294,13 @@
       btn.classList.add('selected');
 
       const timeValue = btn.getAttribute('data-time');
-      // Handle both HH:MM:SS and HH:MM formats
+      // Handle both HH:MM:SS and HH:MM formats - extract HH:MM
       const timeParts = timeValue.split(':');
       const displayTime = `${timeParts[0]}:${timeParts[1]}`;
+      const formattedTime = `${timeParts[0]}:${timeParts[1]}`; // Format for HTML time input
 
-      // Update input with the full time value (HH:MM:SS if available, else HH:MM)
-      regularTimeInput.value = timeValue;
+      // Update input with HH:MM format (required by Django TimeField)
+      regularTimeInput.value = formattedTime;
 
       // Update display
       selectedTimeDisplay.textContent = displayTime;
@@ -308,9 +309,11 @@
       // Enable submit button
       submitBtn.disabled = false;
 
-      // Close modal after selection
+      // Close modal after selection and manage focus properly
       const modal = bootstrap.Modal.getInstance(timeSlotsModal);
       if (modal) {
+        // Move focus to submit button before closing modal to avoid aria-hidden warning
+        submitBtn.focus();
         modal.hide();
       }
     }
