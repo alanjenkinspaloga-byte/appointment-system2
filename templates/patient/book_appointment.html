@@ -79,22 +79,8 @@
   <div class="container-fluid px-3 px-lg-4">
     <div class="row g-4">
 
-      <!-- ── Sidebar ── -->
-      <div class="col-md-3 col-lg-2">
-        <div class="dash-sidebar-card">
-          <div class="dash-sidebar-header">
-            <div class="dash-sidebar-badge"><i class="bi bi-heart-pulse"></i></div>
-            <div>
-              <div class="dash-sidebar-role">Patient</div>
-              <div class="dash-sidebar-uname">{{ request.user.get_full_name }}</div>
-            </div>
-          </div>
-          {% include 'patient/sidebar.html' %}
-        </div>
-      </div>
-
-      <!-- ── Main Content ── -->
-      <div class="col-md-9 col-lg-10">
+      <!-- ── Main Content (Full Width) ── -->
+      <div class="col-12">
         <div class="mb-4">
           <h1 class="dash-title">Book <span>Appointment</span></h1>
           <p class="dash-subtitle"><i class="bi bi-calendar-plus me-1"></i>Select a time slot and confirm your booking.</p>
@@ -295,7 +281,6 @@
     const timeSlotBtns = document.querySelectorAll('.time-slot-btn');
     const selectedTimeDisplay = document.getElementById('selectedTimeDisplay');
     const timeDisplayBox = document.getElementById('timeDisplayBox');
-    const hiddenTimeInput = document.getElementById('id_appointment_time_hidden');
     const regularTimeInput = document.getElementById('id_appointment_time');
     const submitBtn = document.getElementById('submitBtn');
     const timeSlotsModal = document.getElementById('timeSlotsModal');
@@ -309,12 +294,12 @@
       btn.classList.add('selected');
 
       const timeValue = btn.getAttribute('data-time');
-      const [hours, minutes] = timeValue.split(':');
-      const displayTime = `${hours}:${minutes}`;
+      // Handle both HH:MM:SS and HH:MM formats
+      const timeParts = timeValue.split(':');
+      const displayTime = `${timeParts[0]}:${timeParts[1]}`;
 
-      // Update inputs
-      hiddenTimeInput.value = timeValue;
-      regularTimeInput.value = displayTime;
+      // Update input with the full time value (HH:MM:SS if available, else HH:MM)
+      regularTimeInput.value = timeValue;
 
       // Update display
       selectedTimeDisplay.textContent = displayTime;
@@ -341,352 +326,20 @@
     // Restore selection if form was re-rendered with errors
     const existingValue = regularTimeInput.value;
     if (existingValue) {
-      const [hours, minutes] = existingValue.split(':');
-      const targetTime = `${hours}:${minutes}:00`;
+      const timeParts = existingValue.split(':');
+      const targetHours = timeParts[0];
+      const targetMinutes = timeParts[1];
 
       timeSlotBtns.forEach(btn => {
-        if (btn.getAttribute('data-time') === targetTime ||
-            btn.getAttribute('data-time').startsWith(`${hours}:${minutes}`)) {
+        const btnTime = btn.getAttribute('data-time');
+        const btnParts = btnTime.split(':');
+        
+        if (btnParts[0] === targetHours && btnParts[1] === targetMinutes) {
           setSelectedTime(btn);
         }
       });
     }
   });
 </script>
-<style>
-    @media (max-width: 576px) {
-        .container-fluid { padding: 1rem 0.75rem; }
-        h2 { font-size: 1.25rem; margin-bottom: 1.5rem; }
-        .card { border-radius: 12px; margin-bottom: 1rem; }
-        .card-body { padding: 1rem; }
-        .form-label { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; }
-        .form-control, .form-select { font-size: 16px; padding: 0.75rem; border-radius: 8px; }
-    }
-    
-    h2 {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-weight: 800;
-        font-size: 1.65rem;
-        color: #0a1628;
-        line-height: 1.2;
-    }
 
-    .time-slot-btn {
-        padding: 10px 14px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: 2px solid #e2e8f0;
-        background: #fff;
-        color: #1e293b;
-        border-radius: 10px;
-        white-space: nowrap;
-        min-height: 44px;
-    }
-
-    .time-slot-btn:hover:not(:disabled) {
-        background-color: #3b82f6;
-        color: white;
-        border-color: #3b82f6;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    }
-
-    .time-slot-btn.selected {
-        background-color: #1a56db;
-        color: white;
-        border-color: #1a56db;
-    }
-
-    .time-slot-btn:disabled {
-        background-color: #f1f5f9;
-        color: #94a3b8;
-        cursor: not-allowed;
-        border-color: #cbd5e1;
-    }
-
-    @media (max-width: 576px) {
-        .time-slot-btn {
-            padding: 8px 10px;
-            font-size: 0.75rem;
-            min-height: 40px;
-        }
-    }
-</style>
-
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12">
-            <h2 class="mb-4"><i class="bi bi-calendar-plus me-2"></i>Book Appointment</h2>
-
-            <div class="card shadow-sm mb-4">
-                <div class="card-header" style="background: linear-gradient(135deg, var(--blue-primary), var(--blue-light)); color: white; font-weight: 700; border-radius: 20px 20px 0 0;">Appointment Details</div>
-                <div class="card-body">
-                    <p><strong>Doctor:</strong> Dr. {{ availability.doctor.user.get_full_name }}</p>
-                    <p><strong>Specialization:</strong> {{ availability.doctor.specialization }}</p>
-                    <p><strong>Date:</strong> {{ availability.date }}</p>
-                    <p><strong>Available Hours:</strong> {{ availability.start_time|time:"H:i" }} – {{ availability.end_time|time:"H:i" }}</p>
-                    {% if availability.hospital %}
-                    <p><strong>Location:</strong> {{ availability.hospital.name }}, {{ availability.hospital.city }}</p>
-                    {% elif availability.doctor.hospital %}
-                    <p><strong>Location:</strong> {{ availability.doctor.hospital.name }}, {{
-                        availability.doctor.hospital.city }}</p>
-                    {% endif %}
-                    <p><strong>Consultation Fee:</strong> ₱{{ availability.doctor.consultation_fee }}</p>
-                </div>
-            </div>
-
-            <!-- Time Slot Selection -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header" style="background: linear-gradient(135deg, var(--blue-primary), var(--blue-light)); color: white; font-weight: 700; border-radius: 20px 20px 0 0;">Select Time & Confirm</div>
-                <div class="card-body">
-                    <!-- Booking Form -->
-                    <form method="post" id="bookingForm">
-                        {% csrf_token %}
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">
-                                <i class="bi bi-calendar-event me-2" style="color: var(--blue-primary);"></i>
-                                Time Slot:
-                                <span class="badge bg-primary" id="selectedTimeDisplay2">Not selected</span>
-                            </label>
-                            <input type="hidden" name="appointment_time" id="id_appointment_time2" value="">
-                            <button type="button" class="btn btn-primary btn-lg mt-2 w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#timeSlotsModal" style="border-radius: 10px; font-weight: 600;">
-                                <i class="bi bi-clock me-2"></i>Choose Time Slot
-                            </button>
-                        </div>
-
-                        <!-- Appointment Type Selection -->
-                        <div class="mb-4 p-3" style="background-color: #f8f9fa; border-radius: 10px; border-left: 4px solid var(--blue-primary);">
-                            <label class="form-label fw-bold mb-3">
-                                <i class="bi bi-laptop me-2" style="color: var(--blue-primary);"></i>Appointment Type
-                            </label>
-                            {% if availability.doctor.accepts_online_consultations %}
-                            <div class="form-check form-check-lg">
-                                <input class="form-check-input" type="checkbox" id="id_is_online_consultation" name="is_online_consultation">
-                                <label class="form-check-label" for="id_is_online_consultation">
-                                    <strong>Online Video Consultation</strong>
-                                    <br>
-                                    <small class="text-muted">Secure video call appointment instead of visiting the clinic in person</small>
-                                </label>
-                            </div>
-                            {% else %}
-                            <div class="alert alert-info mb-0" role="alert">
-                                <i class="bi bi-info-circle me-2"></i>
-                                <strong>In-Person Only</strong><br>
-                                <small>This doctor currently only accepts in-person appointments.</small>
-                            </div>
-                            {% endif %}
-                            {% for error in form.is_online_consultation.errors %}
-                            <div class="text-danger small mt-2"><i class="bi bi-exclamation-triangle me-1"></i>{{ error }}</div>
-                            {% endfor %}
-                            
-                            <!-- Privacy Disclaimer -->
-                            {% if availability.doctor.accepts_online_consultations %}
-                            <div class="mt-3 p-3" style="background-color: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
-                                <p class="mb-2" style="font-size: 0.9rem; color: #856404;">
-                                    <i class="bi bi-shield-exclamation me-2" style="color: #ff9800;"></i>
-                                    <strong>Privacy Notice:</strong>
-                                </p>
-                                <ul style="font-size: 0.85rem; color: #856404; margin: 0; padding-left: 1.5rem;">
-                                    <li>Video consultations are not end-to-end encrypted</li>
-                                    <li>Please avoid sharing sensitive personal information (SSN, credit card details, etc.)</li>
-                                    <li>For highly confidential matters, please visit in person</li>
-                                    <li class="mt-2">
-                                        <a href="{% url 'video_consultation_terms' %}" target="_blank" style="color: #0c63e4; text-decoration: none; font-weight: 600;">
-                                            Read full Video Consultation Terms <i class="bi bi-box-arrow-up-right ms-1"></i>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        {% for field in form %}
-                        {% if field.name not in 'appointment_time,is_online_consultation' %}
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">{{ field.label }}</label>
-                            {{ field }}
-                            {% for error in field.errors %}
-                            <div class="text-danger small">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                        {% endfor %}
-
-                        <div class="d-grid gap-2 d-sm-flex">
-                            <button type="submit" class="btn btn-success btn-lg" id="submitBtn" disabled>
-                                <i class="bi bi-check-lg me-1"></i>Confirm
-                            </button>
-                            <a href="{% url 'doctor_schedule' availability.doctor.pk %}" class="btn btn-outline-secondary btn-lg">
-                                <i class="bi bi-arrow-left me-1"></i>Back to Doctor
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Info Panel -->
-            <div class="card shadow-sm border-info">
-                <div class="card-header" style="background: var(--teal); color: white; font-weight: 700; border-radius: 20px 20px 0 0;">
-                    <i class="bi bi-shield-check me-2"></i>How It Works
-                </div>
-                <div class="card-body small">
-                    <ul class="mb-0">
-                        <li>Select a time slot within doctor's office hours</li>
-                        <li>Each doctor has independent queues</li>
-                        <li>Queue position based on appointment time (earlier = priority)</li>
-                        <li>Confirm your appointment and wait for doctor to call you</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="timeSlotsModal" tabindex="-1" aria-labelledby="timeSlotsLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, var(--blue-primary), var(--blue-light)); color: white; border: none;">
-                <h5 class="modal-title" id="timeSlotsLabel">
-                    <i class="bi bi-clock me-2"></i>Available Time Slots
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="availableSlotsContainer" class="available-times-grid">
-                    {% for time in available_times %}
-                    <button type="button" class="time-slot-btn" data-time="{{ time }}" title="Available at {{ time|time:'H:i' }}">
-                        {{ time|time:"H:i" }}
-                    </button>
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-    h2 {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-weight: 800;
-        font-size: 1.65rem;
-        color: #0a1628;
-        line-height: 1.2;
-    }
-
-    .time-slot-btn {
-        padding: 10px 14px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: 2px solid #e2e8f0;
-        background: #fff;
-        color: #1e293b;
-        border-radius: 10px;
-        white-space: nowrap;
-    }
-
-    .time-slot-btn:hover:not(:disabled) {
-        background-color: #3b82f6;
-        color: white;
-        border-color: #3b82f6;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    }
-
-    .time-slot-btn.selected {
-        background-color: #1a56db;
-        color: white;
-        border-color: #1a56db;
-        box-shadow: 0 6px 20px rgba(26, 86, 219, 0.4);
-        font-weight: 700;
-    }
-
-    .available-times-grid {
-        max-height: 350px;
-        overflow-y: auto;
-        padding: 16px;
-        border: 2px solid #93c5fd;
-        border-radius: 15px;
-        background-color: #f0f9ff;
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-        gap: 12px;
-    }
-
-    #availableSlotsContainer {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        gap: 12px;
-        max-height: 400px;
-        overflow-y: auto;
-    }
-</style>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const timeSlotBtns = document.querySelectorAll('.time-slot-btn');
-        const selectedTimeDisplay = document.getElementById('selectedTimeDisplay');
-        const timeInput = document.getElementById('id_appointment_time');
-        const submitBtn = document.getElementById('submitBtn');
-        const timeSlotsModal = document.getElementById('timeSlotsModal');
-
-        // Function to set selected time
-        function setSelectedTime(btn) {
-            // Remove previous selection
-            timeSlotBtns.forEach(b => b.classList.remove('selected'));
-
-            // Mark as selected
-            btn.classList.add('selected');
-
-            const timeValue = btn.getAttribute('data-time');
-            const [hours, minutes] = timeValue.split(':');
-            const displayTime = `${hours}:${minutes}`;
-
-            // Update hidden input for form submission
-            timeInput.value = displayTime;
-
-            // Update display
-            selectedTimeDisplay.textContent = displayTime;
-            selectedTimeDisplay.classList.remove('bg-primary');
-            selectedTimeDisplay.classList.add('bg-success');
-
-            // Enable submit button
-            submitBtn.disabled = false;
-
-            // Close modal after selection
-            const modal = bootstrap.Modal.getInstance(timeSlotsModal);
-            if (modal) {
-                modal.hide();
-            }
-        }
-
-        // Add click handlers to time slot buttons
-        timeSlotBtns.forEach(btn => {
-            btn.addEventListener('click', function (e) {
-                e.preventDefault();
-                setSelectedTime(this);
-            });
-        });
-
-        // Restore selection if form was re-rendered with errors
-        const existingValue = timeInput.value;
-        if (existingValue) {
-            const [hours, minutes] = existingValue.split(':');
-            const targetTime = `${hours}:${minutes}:00`;
-
-            timeSlotBtns.forEach(btn => {
-                if (btn.getAttribute('data-time') === targetTime ||
-                    btn.getAttribute('data-time').startsWith(`${hours}:${minutes}`)) {
-                    setSelectedTime(btn);
-                }
-            });
-        }
-    });
-</script>
 {% endblock %}
