@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% block title %}Review Dr. {{ doctor.user.get_full_name }} — Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+.doc-card {
+  border:1px solid #e8eef8;
+  border-radius:14px;
+  overflow:hidden;
+  background:#fff;
+}
+.doc-card .doc-header {
+  background:#f8faff;
+  border-bottom:1px solid #e8eef8;
+  padding:.75rem 1rem;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-weight:700;
+  font-size:.85rem;
+  color:var(--dn,#0f172a);
+}
+.doc-card .doc-body { padding:1rem; }
+.doc-preview img {
+  max-width:100%;
+  max-height:280px;
+  object-fit:contain;
+  border-radius:.5rem;
+  border:1px solid #e8eef8;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="row g-4">
+      <div class="col-md-3 col-lg-2">
+        <div class="dash-sidebar-card">
+          <div class="dash-sidebar-header">
+            <div class="dash-sidebar-badge" style="background:linear-gradient(135deg,#1e3a5f,#2563eb);"><i class="bi bi-shield-lock"></i></div>
+            <div><div class="dash-sidebar-role">Admin</div><div class="dash-sidebar-uname">{{ request.user.get_full_name }}</div></div>
+          </div>
+          {% include 'admin_panel/sidebar.html' %}
+        </div>
+      </div>
+      <div class="col-md-9 col-lg-10">
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+          <ol class="breadcrumb" style="font-size:.85rem;">
+            <li class="breadcrumb-item"><a href="{% url 'admin_doctors' %}" style="color:var(--db);">Manage Doctors</a></li>
+            <li class="breadcrumb-item active text-muted">Review — Dr. {{ doctor.user.get_full_name }}</li>
+          </ol>
+        </nav>
+
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+          <div>
+            <h1 class="dash-title mb-0">Dr. <span>{{ doctor.user.get_full_name }}</span></h1>
+            <p class="dash-subtitle">{{ doctor.user.email }}</p>
+          </div>
+          <div>
+            {% if doctor.is_approved %}
+              <span class="bs bs-approved"><i class="bi bi-check-circle me-1"></i>Approved</span>
+            {% else %}
+              <span class="bs bs-pending"><i class="bi bi-hourglass-split me-1"></i>Pending Review</span>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="dash-alert-tip mb-3">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="row g-4">
+
+          <!-- Professional Information -->
+          <div class="col-12">
+            <div class="dash-card">
+              <div class="dash-card-header"><i class="bi bi-person-lines-fill hi"></i> Professional Information</div>
+              <div class="dash-card-body">
+                <table class="dash-info-table">
+                  <tr><th>Specialization</th><td>{{ doctor.specialization|default:"—" }}</td></tr>
+                  <tr><th>PRC License Number</th><td>{{ doctor.license_number|default:"—" }}</td></tr>
+                  <tr><th>Years of Experience</th><td>{% if doctor.years_of_experience is not None %}{{ doctor.years_of_experience }} year{{ doctor.years_of_experience|pluralize }}{% else %}—{% endif %}</td></tr>
+                  <tr><th>Medical School / University</th><td>{{ doctor.medical_school|default:"—" }}</td></tr>
+                  <tr><th>Year Graduated</th><td>{{ doctor.year_graduated|default:"—" }}</td></tr>
+                  <tr><th>Hospital / Clinic</th><td>{{ doctor.hospital.name|default:"Not assigned" }}</td></tr>
+                  <tr><th>Registered</th><td>{{ doctor.user.date_joined|date:"M d, Y" }}</td></tr>
+                  {% if doctor.approved_at %}
+                  <tr><th>Approved On</th><td>{{ doctor.approved_at|date:"M d, Y" }}</td></tr>
+                  {% endif %}
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submitted Documents -->
+          <div class="col-12">
+            <h2 class="dash-title mb-3" style="font-size:1.1rem;"><i class="bi bi-file-earmark-check hi" style="font-style:normal;"></i> <span>Submitted Documents</span></h2>
+
+            {% if not doctor.license_certificate and not doctor.professional_id_doc and not doctor.board_certification and not doctor.government_id_doc %}
+            <div class="dash-alert-warn">
+              <i class="bi bi-exclamation-triangle me-2"></i>This doctor has not uploaded any documents yet.
+            </div>
+            {% else %}
+            <div class="row g-3">
+
+              <!-- Medical License Certificate -->
+              <div class="col-md-6">
+                <div class="doc-card h-100">
+                  <div class="doc-header d-flex align-items-center gap-2">
+                    <i class="bi bi-patch-check-fill" style="color:#059669;"></i>
+                    Medical License Certificate
+                    {% if doctor.license_certificate %}<span class="bs bs-approved ms-auto">Uploaded</span>{% else %}<span class="bs ms-auto">Not uploaded</span>{% endif %}
+                  </div>
+                  <div class="doc-body">
+                    {% if doctor.license_certificate %}{% with doc=doctor.license_certificate %}
+                      {% if doc.name|lower|slice:"-4:" == ".pdf" %}
+                      <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-file-earmark-pdf" style="font-size:2.5rem;color:#e11d48;"></i>
+                        <div>
+                          <div class="dr-meta mb-1">PDF Document</div>
+                          <a href="{{ doc.url }}" target="_blank" class="btn-mini me-1"><i class="bi bi-eye"></i> View</a>
+                          <a href="{{ doc.url }}" download class="btn-mini-muted"><i class="bi bi-download"></i> Download</a>
+                        </div>
+                      </div>
+                      {% else %}
+                      <div class="doc-preview text-center mb-2"><img src="{{ doc.url }}" alt="Medical License Certificate"></div>
+                      <div class="text-center">
+                        <a href="{{ doc.url }}" target="_blank" class="btn-mini me-1"><i class="bi bi-arrows-fullscreen"></i> Full View</a>
+                        <a href="{{ doc.url }}" download class="btn-mini-muted"><i class="bi bi-download"></i> Download</a>
+                      </div>
+                      {% endif %}
+                    {% endwith %}{% else %}
+                    <p class="dr-meta mb-0">No file uploaded.</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Professional ID -->
+              <div class="col-md-6">
+                <div class="doc-card h-100">
+                  <div class="doc-header d-flex align-items-center gap-2">
+                    <i class="bi bi-person-badge-fill" style="color:var(--db);"></i>
+                    Professional ID
+                    {% if doctor.professional_id_doc %}<span class="bs bs-approved ms-auto">Uploaded</span>{% else %}<span class="bs ms-auto">Not uploaded</span>{% endif %}
+                  </div>
+                  <div class="doc-body">
+                    {% if doctor.professional_id_doc %}{% with doc=doctor.professional_id_doc %}
+                      {% if doc.name|lower|slice:"-4:" == ".pdf" %}
+                      <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-file-earmark-pdf" style="font-size:2.5rem;color:#e11d48;"></i>
+                        <div>
+                          <div class="dr-meta mb-1">PDF Document</div>
+                          <a href="{{ doc.url }}" target="_blank" class="btn-mini me-1"><i class="bi bi-eye"></i> View</a>
+                          <a href="{{ doc.url }}" download class="btn-mini-muted"><i class="bi bi-download"></i> Download</a>
+                        </div>
+                      </div>
+                      {% else %}
+                      <div class="doc-preview text-center mb-2"><img src="{{ doc.url }}" alt="Professional ID"></div>
+                      <div class="text-center">
+                        <a href="{{ doc.url }}" target="_blank" class="btn-mini me-1"><i class="bi bi-arrows-fullscreen"></i> Full View</a>
+                        <a href="{{ doc.url }}" download class="btn-mini-muted"><i class="bi bi-download"></i> Download</a>
+                      </div>
+                      {% endif %}
+                    {% endwith %}{% else %}
+                    <p class="dr-meta mb-0">No file uploaded.</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Board Certification -->
+              <div class="col-md-6">
+                <div class="doc-card h-100">
+                  <div class="doc-header d-flex align-items-center gap-2">
+                    <i class="bi bi-award-fill" style="color:#d97706;"></i>
+                    Board Certification
+                    {% if doctor.board_certification %}<span class="bs bs-approved ms-auto">Uploaded</span>{% else %}<span class="bs ms-auto">Not uploaded</span>{% endif %}
+                  </div>
+                  <div class="doc-body">
+                    {% if doctor.board_certification %}{% with doc=doctor.board_certification %}
+                      {% if doc.name|lower|slice:"-4:" == ".pdf" %}
+                      <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-file-earmark-pdf" style="font-size:2.5rem;color:#e11d48;"></i>
+                        <div>
+                          <div class="dr-meta mb-1">PDF Document</div>
+                          <a href="{{ doc.url }}" target="_blank" class="btn-mini me-1"><i class="bi bi-eye"></i> View</a>
+                          <a href="{{ doc.url }}" download class="btn-mini-muted"><i class="bi bi-download"></i> Download</a>
+                        </div>
+                      </div>
+                      {% else %}
+                      <div class="doc-preview text-center mb-2"><img src="{{ doc.url }}" alt="Board Certification"></div>
+                      <div class="text-center">
+                        <a href="{{ doc.url }}" target="_blank" class="btn-mini me-1"><i class="bi bi-arrows-fullscreen"></i> Full View</a>
+                        <a href="{{ doc.url }}" download class="btn-mini-muted"><i class="bi bi-download"></i> Download</a>
+                      </div>
+                      {% endif %}
+                    {% endwith %}{% else %}
+                    <p class="dr-meta mb-0">No file uploaded.</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Government ID -->
+              <div class="col-md-6">
+                <div class="doc-card h-100">
+                  <div class="doc-header d-flex align-items-center gap-2">
+                    <i class="bi bi-card-heading" style="color:#64748b;"></i>
+                    Government ID
+                    {% if doctor.government_id_doc %}<span class="bs bs-approved ms-auto">Uploaded</span>{% else %}<span class="bs ms-auto">Not uploaded</span>{% endif %}
+                  </div>
+                  <div class="doc-body">
+                    {% if doctor.government_id_doc %}{% with doc=doctor.government_id_doc %}
+                      {% if doc.name|lower|slice:"-4:" == ".pdf" %}
+                      <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-file-earmark-pdf" style="font-size:2.5rem;color:#e11d48;"></i>
+                        <div>
+                          <div class="dr-meta mb-1">PDF Document</div>
+                          <a href="{{ doc.url }}" target="_blank" class="btn-mini me-1"><i class="bi bi-eye"></i> View</a>
+                          <a href="{{ doc.url }}" download class="btn-mini-muted"><i class="bi bi-download"></i> Download</a>
+                        </div>
+                      </div>
+                      {% else %}
+                      <div class="doc-preview text-center mb-2"><img src="{{ doc.url }}" alt="Government ID"></div>
+                      <div class="text-center">
+                        <a href="{{ doc.url }}" target="_blank" class="btn-mini me-1"><i class="bi bi-arrows-fullscreen"></i> Full View</a>
+                        <a href="{{ doc.url }}" download class="btn-mini-muted"><i class="bi bi-download"></i> Download</a>
+                      </div>
+                      {% endif %}
+                    {% endwith %}{% else %}
+                    <p class="dr-meta mb-0">No file uploaded.</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Approval Decision -->
+          <div class="col-12">
+            <div class="dash-card">
+              <div class="dash-card-header"><i class="bi bi-shield-check hi"></i> Approval Decision</div>
+              <div class="dash-card-body">
+                <p class="dr-meta mb-3">After reviewing the submitted documents, approve or reject this doctor's application.</p>
+                <div class="d-flex gap-2 flex-wrap">
+                  <form method="post" action="{% url 'admin_approve_doctor' doctor.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="admin_review_doctor">
+                    {% if not doctor.is_approved %}
+                      <button name="action" value="approve" class="btn-dash-primary"
+                              onclick="return confirm('Approve Dr. {{ doctor.user.get_full_name }}?')">
+                        <i class="bi bi-check-circle"></i> Approve Doctor
+                      </button>
+                    {% else %}
+                      <button name="action" value="reject" class="btn-dash-red"
+                              onclick="return confirm('Revoke approval for Dr. {{ doctor.user.get_full_name }}?')">
+                        <i class="bi bi-x-circle"></i> Revoke Approval
+                      </button>
+                    {% endif %}
+                  </form>
+                  <a href="{% url 'admin_doctors' %}" class="btn-dash-outline-muted"><i class="bi bi-arrow-left"></i> Back to List</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

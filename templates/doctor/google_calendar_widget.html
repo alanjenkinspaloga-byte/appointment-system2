@@ -1,0 +1,95 @@
+<!-- Google Calendar Connection Status - Include in doctor dashboard -->
+
+{% load static %}
+
+<div class="card border-primary mb-4">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-calendar-alt mr-2"></i>Google Calendar Integration
+        </h5>
+        {% if user.doctor_profile.is_google_calendar_connected %}
+            <span class="badge badge-success">Connected</span>
+        {% else %}
+            <span class="badge badge-warning">Not Connected</span>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        {% if user.doctor_profile.is_google_calendar_connected %}
+            <div class="alert alert-success" role="alert">
+                <i class="fas fa-check-circle mr-2"></i>
+                <strong>Google Calendar Connected!</strong>
+                <p class="mt-2 mb-0">
+                    Your Google Calendar is connected. When patients book online consultations, 
+                    Google Meet links will be automatically created and sent to both of you via email.
+                </p>
+            </div>
+            
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <h6><i class="fas fa-info-circle mr-2"></i>Connected Account</h6>
+                    <p class="text-muted mb-3">
+                        Account: {{ user.email }}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <form method="post" action="{% url 'disconnect_google_calendar' %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm" 
+                                onclick="return confirm('Are you sure? Google Meet links will not be created for new online appointments.')">
+                            <i class="fas fa-sign-out-alt mr-1"></i>Disconnect
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <hr class="my-3">
+            
+            <h6><i class="fas fa-cogs mr-2"></i>How It Works</h6>
+            <ul class="small text-muted">
+                <li>When a patient books an online consultation appointment with you</li>
+                <li>A Google Calendar event is automatically created</li>
+                <li>A Google Meet link is generated and saved to the appointment</li>
+                <li>Email invitations are sent to both you and the patient</li>
+                <li>The Meet link is available in the appointment details</li>
+            </ul>
+
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                <i class="fas fa-info-circle mr-2"></i>
+                <strong>Enable Online Consultations</strong>
+                <p class="mt-2 mb-0">
+                    Connect your Google Calendar to enable online consultations with Google Meet links. 
+                    When patients book online appointments, Google Meet video call links will be automatically 
+                    created and shared with both of you.
+                </p>
+            </div>
+            
+            <a href="{% url 'google_oauth_authorize' %}" class="btn btn-primary btn-lg">
+                <i class="fab fa-google mr-2"></i>Connect Google Calendar
+            </a>
+            
+            <hr class="my-3">
+            
+            <h6><i class="fas fa-question-circle mr-2"></i>What You Need</h6>
+            <ul class="small text-muted">
+                <li>A Google account (personal or business)</li>
+                <li>Access to Google Calendar</li>
+                <li>Email address for the account</li>
+            </ul>
+
+        {% endif %}
+    </div>
+</div>
+    <a href="#" class="list-group-item list-group-item-action">
+        <i class="fas fa-video mr-2"></i>Active Meetings
+        {% if active_meetings_count %}
+            <span class="badge badge-info float-right">{{ active_meetings_count }}</span>
+        {% endif %}
+    </a>
+    <a href="{% url 'doctor_appointments' %}" class="list-group-item list-group-item-action">
+        <i class="fas fa-list mr-2"></i>All Appointments
+        {% if pending_online_count %}
+            <span class="badge badge-warning float-right">{{ pending_online_count }}</span>
+        {% endif %}
+    </a>
+</div>

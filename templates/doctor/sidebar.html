@@ -1,0 +1,27 @@
+<!-- Doctor Sidebar -->
+<div class="list-group list-group-flush">
+    <a href="{% url 'doctor_dashboard' %}"
+       class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'doctor_dashboard' %}active{% endif %}">
+        <i class="bi bi-speedometer2 me-2"></i> Dashboard
+    </a>
+    <a href="{% url 'availability_list' %}"
+       class="list-group-item list-group-item-action {% if 'availability' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-calendar-plus me-2"></i> My Schedule
+    </a>
+    <a href="{% url 'doctor_appointments' %}"
+       class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'doctor_appointments' %}active{% endif %}">
+        <i class="bi bi-journal-text me-2"></i> Appointments
+    </a>
+    <a href="{% url 'doctor_today_patients' %}"
+       class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'doctor_today_patients' %}active{% endif %}">
+        <i class="bi bi-people me-2"></i> Today's Patients
+    </a>
+    <a href="{% url 'doctor_history' %}"
+       class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'doctor_history' %}active{% endif %}">
+        <i class="bi bi-clock-history me-2"></i> History
+    </a>
+    <a href="{% url 'doctor_settings' %}"
+       class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'doctor_settings' %}active{% endif %}">
+        <i class="bi bi-gear me-2"></i> Clinic Settings
+    </a>
+</div>

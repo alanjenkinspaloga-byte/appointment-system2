@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}My Schedule{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="row g-4">
+      <div class="col-md-3 col-lg-2">
+        <div class="dash-sidebar-card">
+          <div class="dash-sidebar-header">
+            <div class="dash-sidebar-badge" style="background:linear-gradient(135deg,#2563eb,#4f46e5);"><i class="bi bi-person-badge"></i></div>
+            <div>
+              <div class="dash-sidebar-role">Doctor</div>
+              <div class="dash-sidebar-uname">{{ request.user.get_full_name }}</div>
+            </div>
+          </div>
+          {% include 'doctor/sidebar.html' %}
+        </div>
+      </div>
+      <div class="col-md-9 col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div>
+            <h1 class="dash-title mb-0">My <span>Schedule</span></h1>
+            <p class="dash-subtitle">Manage your availability slots and accepting status.</p>
+          </div>
+          <a href="{% url 'availability_create' %}" class="btn-dash-primary"><i class="bi bi-plus-lg"></i> Add Slot</a>
+        </div>
+
+        <div class="dash-alert-tip mb-4">
+          <i class="bi bi-lightning-fill me-1"></i>
+          <strong>Tip:</strong> Use the <strong>Pause / Accept</strong> button to quickly control whether you're accepting patients at each location — similar to how Grab lets drivers go online/offline.
+        </div>
+
+        <div class="dash-card">
+          {% if availabilities %}
+          <div class="table-responsive">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>Date</th><th>Time</th><th>Location</th><th>Booked</th><th>Availability</th><th>Accepting</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for slot in availabilities %}
+                <tr>
+                  <td style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;color:var(--dn);">{{ slot.date }}</td>
+                  <td class="td-meta">{{ slot.start_time }} – {{ slot.end_time }}</td>
+                  <td class="td-meta">
+                    {% if slot.location_name %}
+                      <i class="bi bi-geo-alt me-1" style="color:var(--db);"></i>{{ slot.location_name }}
+                    {% elif slot.hospital %}
+                      <i class="bi bi-hospital me-1" style="color:var(--db);"></i>{{ slot.hospital.name }}
+                      {% if slot.hospital.city %}<br><small>{{ slot.hospital.city }}</small>{% endif %}
+                    {% elif slot.effective_hospital %}
+                      <i class="bi bi-hospital me-1" style="color:#94a3b8;"></i>{{ slot.effective_hospital.name }} <small>(primary)</small>
+                    {% else %}—{% endif %}
+                  </td>
+                  <td class="td-meta">{{ slot.booked_count }}/{{ slot.max_patients }}</td>
+                  <td>
+                    {% if not slot.is_available %}<span class="bs bs-unavail">Unavailable</span>
+                    {% elif slot.is_fully_booked %}<span class="bs bs-full">Full</span>
+                    {% else %}<span class="bs bs-open">Open</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if slot.accepting_status == 'accepting' %}
+                      <span class="bs bs-accepting"><i class="bi bi-check-circle me-1"></i>Accepting</span>
+                    {% else %}
+                      <span class="bs bs-paused"><i class="bi bi-pause-circle me-1"></i>Paused</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="d-flex gap-1 flex-wrap">
+                      <form method="post" action="{% url 'availability_toggle_status' slot.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="availability_list">
+                        {% if slot.accepting_status == 'accepting' %}
+                        <button type="submit" class="btn-mini-amber" title="Pause this slot"><i class="bi bi-pause-fill"></i> Pause</button>
+                        {% else %}
+                        <button type="submit" class="btn-mini-green" title="Accept patients"><i class="bi bi-play-fill"></i> Accept</button>
+                        {% endif %}
+                      </form>
+                      <a href="{% url 'availability_edit' slot.pk %}" class="btn-mini" title="Edit slot"><i class="bi bi-pencil"></i></a>
+                      <form method="post" action="{% url 'availability_delete' slot.pk %}" class="d-inline"
+                            onsubmit="return confirm('Delete this slot?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-mini-red" title="Delete slot"><i class="bi bi-trash"></i></button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="dash-empty">
+            <i class="bi bi-calendar-x"></i>
+            <p>No schedule slots yet. <a href="{% url 'availability_create' %}">Create one now.</a></p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

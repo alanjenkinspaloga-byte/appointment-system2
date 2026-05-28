@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Choose a Category{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="row g-4">
+      <!-- Always full-width for standalone (no sidebar) -->
+      <div class="col-12">
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+              <h1 class="dash-title">Find a <span>Doctor</span></h1>
+              <p class="dash-subtitle">Select a medical category to find available doctors.</p>
+            </div>
+            <a href="{% url 'home' %}" class="btn-dash-outline-muted"><i class="bi bi-arrow-left"></i> Home</a>
+          </div>
+        </div>
+        <div class="row g-4">
+          <div class="col-md-6">
+            <div class="cat-card">
+              <div class="cat-card-body">
+                <div class="cat-icon blue"><i class="bi bi-emoji-smile"></i></div>
+                <div class="cat-title">Pediatrics</div>
+                <p class="cat-desc">For children's health — fever, cough, vaccination, growth concerns, and more.</p>
+              </div>
+              <div class="cat-card-footer">
+                <a href="{% url 'doctor_list_standalone' %}?category=Pediatrics" class="btn-dash-primary w-100 justify-content-center"><i class="bi bi-arrow-right"></i> View Pediatricians</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="cat-card">
+              <div class="cat-card-body">
+                <div class="cat-icon rose"><i class="bi bi-heart-pulse"></i></div>
+                <div class="cat-title">Obstetrics & Gynecology</div>
+                <p class="cat-desc">For women's health — pregnancy, prenatal care, menstrual issues, and reproductive health.</p>
+              </div>
+              <div class="cat-card-footer">
+                <a href="{% url 'doctor_list_standalone' %}?category=Obstetrics" class="btn-dash-red w-100 justify-content-center"><i class="bi bi-arrow-right"></i> View OB-GYN Doctors</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="cat-card">
+              <div class="cat-card-body">
+                <div class="cat-icon teal"><i class="bi bi-hospital"></i></div>
+                <div class="cat-title">Dentistry</div>
+                <p class="cat-desc">For dental health — toothache, cleaning, braces, extractions, and oral hygiene.</p>
+              </div>
+              <div class="cat-card-footer">
+                <a href="{% url 'doctor_list_standalone' %}?category=Dentistry" class="btn-dash-outline w-100 justify-content-center"><i class="bi bi-arrow-right"></i> View Dentists</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="text-center mt-4">
+          <a href="{% url 'doctor_list_standalone' %}" class="btn-dash-outline-muted"><i class="bi bi-people"></i> Browse All Doctors</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
