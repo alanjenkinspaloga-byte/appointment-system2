@@ -114,6 +114,11 @@ SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapt
 # Google OAuth provider settings
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
+        'APP': {
+            'client_id': config('GOOGLE_OAUTH_CLIENT_ID', default=''),
+            'secret': config('GOOGLE_OAUTH_CLIENT_SECRET', default=''),
+            'key': ''  # Not used for Google
+        },
         'SCOPE': [
             'profile',
             'email',
@@ -295,12 +300,6 @@ CELERY_RESULT_EXTENDED = True
 # ============================================================
 # Securely store Google OAuth credentials in environment variables
 # Obtain credentials from: https://console.cloud.google.com/
-
-SOCIALACCOUNT_PROVIDERS['google']['APP'] = {
-    'client_id': config('GOOGLE_OAUTH_CLIENT_ID', default=''),
-    'secret': config('GOOGLE_OAUTH_CLIENT_SECRET', default=''),
-    'key': ''  # Not used for Google
-}
 
 # Redirect URI (must match Google Cloud Console)
 # Development: http://localhost:8000/accounts/google/login/callback/
