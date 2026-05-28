@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% block title %}Professional Information — OkiDoki{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .step-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        font-weight: 700;
+        font-size: .85rem;
+        flex-shrink: 0;
+    }
+    .step-done  { background: #198754; color: #fff; }
+    .step-active { background: #0d6efd; color: #fff; }
+    .step-pending { background: #dee2e6; color: #6c757d; }
+    .doc-upload-card {
+        border: 2px dashed #dee2e6;
+        border-radius: .5rem;
+        padding: 1rem 1.25rem;
+        transition: border-color .2s;
+    }
+    .doc-upload-card:hover { border-color: #0d6efd; }
+    .doc-upload-card .form-control[type=file] { border: none; padding: 0; }
+    .section-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #0d6efd;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: .4rem;
+        margin-bottom: 1.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+
+            <!-- Progress Steps -->
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="step-badge step-done"><i class="bi bi-check-lg"></i></span>
+                    <span class="text-muted small">Account Created</span>
+                </div>
+                <div class="flex-grow-1 border-top border-2"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="step-badge step-active">2</span>
+                    <span class="fw-semibold small">Professional Information</span>
+                </div>
+                <div class="flex-grow-1 border-top border-2 border-secondary opacity-25"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="step-badge step-pending">3</span>
+                    <span class="text-muted small">Admin Approval</span>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="mb-1">
+                        <i class="bi bi-clipboard2-pulse text-primary me-2"></i>Professional Information
+                    </h3>
+                    <p class="text-muted small mb-4">
+                        Please complete your professional details and upload the required documents.
+                        All fields marked <span class="text-danger">*</span> are required.
+                    </p>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>Please correct the errors below:</strong>
+                        <ul class="mb-0 mt-2">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- SECTION 1: Professional Details -->
+                        <p class="section-title mt-2">
+                            <i class="bi bi-person-badge me-1"></i> 1 &nbsp;Professional Details
+                        </p>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="{{ form.specialization.id_for_label }}" class="form-label fw-semibold">
+                                    Specialty <span class="text-danger">*</span>
+                                </label>
+                                {{ form.specialization }}
+                                {% if form.specialization.errors %}
+                                <div class="text-danger small mt-1">{{ form.specialization.errors|join:', ' }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.license_number.id_for_label }}" class="form-label fw-semibold">
+                                    Medical License Number (PRC ID) <span class="text-danger">*</span>
+                                </label>
+                                {{ form.license_number }}
+                                <div class="form-text">Issued by the Professional Regulation Commission.</div>
+                                {% if form.license_number.errors %}
+                                <div class="text-danger small mt-1">{{ form.license_number.errors|join:', ' }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.years_of_experience.id_for_label }}" class="form-label fw-semibold">
+                                    Years of Experience
+                                </label>
+                                {{ form.years_of_experience }}
+                                {% if form.years_of_experience.errors %}
+                                <div class="text-danger small mt-1">{{ form.years_of_experience.errors|join:', ' }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-5">
+                                <label for="{{ form.medical_school.id_for_label }}" class="form-label fw-semibold">
+                                    Medical School / University
+                                </label>
+                                {{ form.medical_school }}
+                                <div class="form-text">e.g. UP College of Medicine, UST Faculty of Medicine and Surgery</div>
+                                {% if form.medical_school.errors %}
+                                <div class="text-danger small mt-1">{{ form.medical_school.errors|join:', ' }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                <label for="{{ form.year_graduated.id_for_label }}" class="form-label fw-semibold">
+                                    Year Graduated
+                                </label>
+                                {{ form.year_graduated }}
+                                {% if form.year_graduated.errors %}
+                                <div class="text-danger small mt-1">{{ form.year_graduated.errors|join:', ' }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- SECTION 2: Document Uploads -->
+                        <p class="section-title">
+                            <i class="bi bi-file-earmark-arrow-up me-1"></i> 2 &nbsp;License &amp; Certification Upload
+                        </p>
+                        <p class="text-muted small mb-3">
+                            Upload clear scans or photos of the following documents.
+                            Accepted formats: <strong>PDF, JPG, PNG</strong> &mdash; max 10 MB each.
+                        </p>
+
+                        <div class="row g-3 mb-4">
+                            <!-- Medical License Certificate -->
+                            <div class="col-md-6">
+                                <div class="doc-upload-card h-100">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <i class="bi bi-patch-check-fill text-success fs-5"></i>
+                                        <span class="fw-semibold">Medical License Certificate</span>
+                                    </div>
+                                    <p class="text-muted small mb-2">
+                                        Official license issued by the <strong>Professional Regulation Commission (PRC)</strong>.
+                                    </p>
+                                    {{ form.license_certificate }}
+                                    {% if doctor.license_certificate %}
+                                    <div class="mt-2 small text-success">
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        Current file: <a href="{{ doctor.license_certificate.url }}" target="_blank">View uploaded file</a>
+                                    </div>
+                                    {% endif %}
+                                    {% if form.license_certificate.errors %}
+                                    <div class="text-danger small mt-1">{{ form.license_certificate.errors|join:', ' }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Professional ID -->
+                            <div class="col-md-6">
+                                <div class="doc-upload-card h-100">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <i class="bi bi-person-badge-fill text-primary fs-5"></i>
+                                        <span class="fw-semibold">Professional ID</span>
+                                    </div>
+                                    <p class="text-muted small mb-2">
+                                        PRC ID card or <strong>Philippine Medical Association (PMA)</strong> membership card.
+                                    </p>
+                                    {{ form.professional_id_doc }}
+                                    {% if doctor.professional_id_doc %}
+                                    <div class="mt-2 small text-success">
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        Current file: <a href="{{ doctor.professional_id_doc.url }}" target="_blank">View uploaded file</a>
+                                    </div>
+                                    {% endif %}
+                                    {% if form.professional_id_doc.errors %}
+                                    <div class="text-danger small mt-1">{{ form.professional_id_doc.errors|join:', ' }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Board Certification -->
+                            <div class="col-md-6">
+                                <div class="doc-upload-card h-100">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <i class="bi bi-award-fill text-warning fs-5"></i>
+                                        <span class="fw-semibold">Board Certification</span>
+                                    </div>
+                                    <p class="text-muted small mb-2">
+                                        Certificate of board examination passed (e.g. Physician Licensure Exam).
+                                    </p>
+                                    {{ form.board_certification }}
+                                    {% if doctor.board_certification %}
+                                    <div class="mt-2 small text-success">
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        Current file: <a href="{{ doctor.board_certification.url }}" target="_blank">View uploaded file</a>
+                                    </div>
+                                    {% endif %}
+                                    {% if form.board_certification.errors %}
+                                    <div class="text-danger small mt-1">{{ form.board_certification.errors|join:', ' }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Government ID -->
+                            <div class="col-md-6">
+                                <div class="doc-upload-card h-100">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <i class="bi bi-card-heading text-secondary fs-5"></i>
+                                        <span class="fw-semibold">Government ID</span>
+                                    </div>
+                                    <p class="text-muted small mb-2">
+                                        Any valid government-issued ID (Passport, Driver's License, PhilHealth, SSS, UMID, etc.).
+                                    </p>
+                                    {{ form.government_id_doc }}
+                                    {% if doctor.government_id_doc %}
+                                    <div class="mt-2 small text-success">
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        Current file: <a href="{{ doctor.government_id_doc.url }}" target="_blank">View uploaded file</a>
+                                    </div>
+                                    {% endif %}
+                                    {% if form.government_id_doc.errors %}
+                                    <div class="text-danger small mt-1">{{ form.government_id_doc.errors|join:', ' }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Info notice -->
+                        <div class="alert alert-info d-flex gap-2 align-items-start small mb-4">
+                            <i class="bi bi-info-circle-fill fs-5 mt-1 flex-shrink-0"></i>
+                            <div>
+                                Your documents will be reviewed by the admin team. You will be notified
+                                once your account has been <strong>approved</strong> and you can start
+                                accepting appointments.
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-send-check me-1"></i> Submit Professional Information
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

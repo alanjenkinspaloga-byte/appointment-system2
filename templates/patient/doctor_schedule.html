@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% block title %}Dr. {{ doctor.user.get_full_name }} — Schedule{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  .location-map { height: 240px; border-radius: 12px; }
+  .google-map-embed { width: 100%; height: 240px; border: 0; border-radius: 12px; }
+  .slot-card { background:#fff; border-radius:14px; border:1.5px solid #e8eef8; padding:1rem 1.1rem; transition:.15s; }
+  .slot-card:hover { box-shadow:0 4px 18px rgba(37,99,235,.09); transform:translateY(-2px); }
+  .slot-card.slot-paused { opacity:.65; border-color:#fbbf24; }
+  .slot-card.slot-full { border-color:#f87171; }
+  .slot-card.slot-open { border-color:#34d399; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="row g-4">
+      <div class="col-md-3 col-lg-2">
+        <div class="dash-sidebar-card">
+          <div class="dash-sidebar-header">
+            <div class="dash-sidebar-badge" style="background:linear-gradient(135deg,#059669,#10b981);"><i class="bi bi-heart-pulse"></i></div>
+            <div>
+              <div class="dash-sidebar-role">Patient</div>
+              <div class="dash-sidebar-uname">{{ request.user.get_full_name }}</div>
+            </div>
+          </div>
+          {% include 'patient/sidebar.html' %}
+        </div>
+      </div>
+      <div class="col-md-9 col-lg-10">
+
+        <!-- Doctor Profile Card -->
+        <div class="dash-card mb-4">
+          <div class="dash-card-body">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+              <div>
+                <h1 class="dash-title mb-1" style="font-size:1.4rem;">Dr. <span>{{ doctor.user.get_full_name }}</span></h1>
+                <div class="mb-2">
+                  {% if 'Pediatrics' in doctor.specialization %}
+                    <span class="spec-pill spec-peds">{{ doctor.specialization }}</span>
+                  {% elif 'Obstet' in doctor.specialization or 'Gynecol' in doctor.specialization %}
+                    <span class="spec-pill spec-obgyn">{{ doctor.specialization }}</span>
+                  {% elif 'Dent' in doctor.specialization %}
+                    <span class="spec-pill spec-dent">{{ doctor.specialization }}</span>
+                  {% else %}
+                    <span class="spec-pill spec-default">{{ doctor.specialization }}</span>
+                  {% endif %}
+                </div>
+                <div class="d-flex flex-wrap gap-2 mb-2">
+                  {% if doctor.license_number %}
+                  <span class="bs bs-approved"><i class="bi bi-card-text me-1"></i>PRC: {{ doctor.license_number }}</span>
+                  {% endif %}
+                  {% if doctor.years_of_experience %}
+                  <span class="bs bs-confirmed"><i class="bi bi-award me-1"></i>{{ doctor.years_of_experience }} yrs exp</span>
+                  {% endif %}
+                  {% if doctor.medical_school %}
+                  <span class="bs bs-queue"><i class="bi bi-mortarboard me-1"></i>{{ doctor.medical_school }}{% if doctor.year_graduated %} ({{ doctor.year_graduated }}){% endif %}</span>
+                  {% endif %}
+                </div>
+                <p class="mb-1" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;color:var(--dn);">
+                  <i class="bi bi-cash me-1" style="color:#059669;"></i>&#8369;{{ doctor.consultation_fee }} / consultation
+                </p>
+                {% if doctor.linkedin_url %}
+                <a href="{{ doctor.linkedin_url }}" target="_blank" rel="noopener noreferrer" class="btn-dash-outline mt-2" style="display:inline-flex;">
+                  <i class="bi bi-linkedin"></i> LinkedIn Profile
+                </a>
+                {% endif %}
+              </div>
+              <a href="{% url 'doctor_list' %}" class="btn-dash-outline-muted" style="white-space:nowrap;">
+                <i class="bi bi-arrow-left"></i> Back to Doctors
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== PER-LOCATION SCHEDULE SECTIONS ===== -->
+        {% if locations %}
+          {% for loc in locations %}
+          <div class="dash-card mb-4">
+            <div class="dash-card-header {% if loc.all_paused %}warn{% endif %}">
+              <i class="bi bi-hospital hi"></i>
+              <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;">
+                {% if loc.hospital %}{{ loc.hospital.name }}{% if loc.hospital.city %} — {{ loc.hospital.city }}{% endif %}{% else %}Primary Clinic{% endif %}
+              </span>
+              <span class="ms-auto">
+                {% if loc.all_paused %}
+                  <span class="bs bs-paused"><i class="bi bi-pause-circle me-1"></i>Paused at this Location</span>
+                {% else %}
+                  <span class="bs bs-accepting"><i class="bi bi-check-circle-fill me-1"></i>Accepting Patients</span>
+                {% endif %}
+              </span>
+            </div>
+            <div class="dash-card-body">
+              {% if loc.hospital %}
+              <div class="row g-3 mb-3">
+                <div class="col-md-{% if loc.map_embed_url or loc.hospital_json %}6{% else %}12{% endif %}">
+                  <p class="dr-meta mb-1"><i class="bi bi-geo-alt me-1" style="color:#e11d48;"></i> {{ loc.hospital.address }}</p>
+                  {% if loc.hospital.phone %}
+                  <p class="dr-meta mb-0"><i class="bi bi-telephone me-1"></i> {{ loc.hospital.phone }}</p>
+                  {% endif %}
+                </div>
+                {% if loc.map_embed_url %}
+                <div class="col-md-6">
+                  <iframe src="{{ loc.map_embed_url }}" class="google-map-embed"
+                    allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+                {% elif loc.hospital_json %}
+                <div class="col-md-6">
+                  <div id="map-loc-{{ forloop.counter }}" class="location-map"></div>
+                </div>
+                {% endif %}
+              </div>
+              {% endif %}
+
+              {% if loc.all_paused %}
+              <div class="dash-alert-warn mb-3">
+                <i class="bi bi-info-circle me-1"></i>
+                <strong>Dr. {{ doctor.user.get_full_name }} is currently paused at this location.</strong>
+                They may be attending patients at another clinic.
+                {% if loc.alternatives %}Check the available doctors with the same specialty below.{% endif %}
+              </div>
+              {% if loc.alternatives %}
+              <p class="dr-meta mb-2"><i class="bi bi-people-fill me-1"></i> Available Doctors Nearby{% if loc.hospital.city %} in {{ loc.hospital.city }}{% endif %}:</p>
+              <div class="row g-2 mb-3">
+                {% for alt in loc.alternatives %}
+                <div class="col-md-6 col-xl-4">
+                  <div class="dr-card" style="border-color:#34d399;">
+                    <div class="dr-card-body" style="padding:.75rem 1rem;">
+                      <div class="dr-name" style="font-size:.9rem;">Dr. {{ alt.user.get_full_name }}</div>
+                      <div class="dr-meta">{{ alt.specialization }}</div>
+                      {% if alt.hospital %}<div class="dr-meta"><i class="bi bi-geo-alt me-1"></i>{{ alt.hospital.name }}</div>{% endif %}
+                      <div class="dr-meta"><i class="bi bi-cash me-1" style="color:#059669;"></i>&#8369;{{ alt.consultation_fee }}</div>
+                    </div>
+                    <div class="dr-card-footer" style="padding:.5rem 1rem;">
+                      <a href="{% url 'doctor_schedule' alt.pk %}" class="btn-dash-green" style="flex:1;justify-content:center;font-size:.82rem;"><i class="bi bi-calendar-check"></i> View Schedule</a>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+              {% endif %}
+              {% endif %}
+
+              <!-- Schedule Slots -->
+              {% if loc.slots %}
+              <div class="row g-3">
+                {% for slot in loc.slots %}
+                <div class="col-md-6 col-xl-4">
+                  <div class="slot-card {% if slot.accepting_status == 'paused' %}slot-paused{% elif slot.is_fully_booked_flag %}slot-full{% else %}slot-open{% endif %}">
+                    <p class="mb-1" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;color:var(--dn);"><i class="bi bi-calendar3 me-1" style="color:var(--db);"></i>{{ slot.date }}</p>
+                    <p class="dr-meta mb-1"><i class="bi bi-clock me-1"></i>{{ slot.start_time }} – {{ slot.end_time }}</p>
+                    <p class="dr-meta mb-2"><i class="bi bi-people me-1"></i>{{ slot.booked_count }}/{{ slot.max_patients }} booked</p>
+                    {% if slot.accepting_status == 'paused' %}
+                      <span class="bs bs-paused"><i class="bi bi-pause-circle me-1"></i>Paused</span>
+                    {% elif slot.is_fully_booked_flag %}
+                      <span class="bs bs-full">Fully Booked</span>
+                    {% else %}
+                      <span class="bs bs-accepting mb-2" style="display:inline-flex;">Accepting</span><br>
+                      <a href="{% url 'book_appointment' slot.pk %}" class="btn-dash-green mt-2" style="display:inline-flex;">
+                        <i class="bi bi-plus-lg"></i> Book Now
+                      </a>
+                    {% endif %}
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+              {% else %}
+              <div class="dash-alert-info mb-0"><i class="bi bi-info-circle me-1"></i> No upcoming slots at this location.</div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+
+        {% elif availabilities %}
+        <!-- Slots without a specific hospital assigned -->
+        <h2 class="dash-title mb-3" style="font-size:1.15rem;"><span>Available</span> Slots</h2>
+        {% if map_embed_url %}
+        <div class="dash-card mb-3" style="overflow:hidden;padding:0;">
+          <iframe src="{{ map_embed_url }}" class="google-map-embed" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+        {% elif hospital_json %}
+        <div class="dash-card mb-3" style="overflow:hidden;padding:0;">
+          <div id="primaryMap" style="height:240px;"></div>
+        </div>
+        {% endif %}
+        <div class="row g-3">
+          {% for slot in availabilities %}
+          <div class="col-md-6 col-xl-4">
+            <div class="slot-card {% if slot.accepting_status == 'paused' %}slot-paused{% elif slot.is_fully_booked_flag %}slot-full{% else %}slot-open{% endif %}">
+              <p class="mb-1" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;color:var(--dn);"><i class="bi bi-calendar3 me-1" style="color:var(--db);"></i>{{ slot.date }}</p>
+              <p class="dr-meta mb-1"><i class="bi bi-clock me-1"></i>{{ slot.start_time }} – {{ slot.end_time }}</p>
+              <p class="dr-meta mb-2"><i class="bi bi-people me-1"></i>{{ slot.booked_count }}/{{ slot.max_patients }} booked</p>
+              {% if slot.accepting_status == 'paused' %}
+                <span class="bs bs-paused"><i class="bi bi-pause-circle me-1"></i>Paused</span>
+              {% elif slot.is_fully_booked_flag %}
+                <span class="bs bs-full">Fully Booked</span>
+              {% else %}
+                <a href="{% url 'book_appointment' slot.pk %}" class="btn-dash-green" style="display:inline-flex;">
+                  <i class="bi bi-plus-lg"></i> Book Now
+                </a>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        {% else %}
+        <div class="dash-card">
+          <div class="dash-empty"><i class="bi bi-calendar-x"></i><p>No available slots at this time.</p></div>
+        </div>
+        {% endif %}
+
+        <div class="mt-4">
+          <a href="{% url 'doctor_list' %}" class="btn-dash-outline-muted"><i class="bi bi-arrow-left"></i> Back to Doctors</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function() {
+    const locationMaps = [
+        {% for loc in locations %}{% if loc.hospital_json %}
+        { elementId: 'map-loc-{{ forloop.counter }}', data: {{ loc.hospital_json|safe }} },
+        {% endif %}{% endfor %}
+    ];
+    locationMaps.forEach(function(item) {
+        const el = document.getElementById(item.elementId);
+        if (!el) return;
+        const map = L.map(el, { scrollWheelZoom: false }).setView([item.data.lat, item.data.lng], 17);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 20,
+        }).addTo(map);
+        L.marker([item.data.lat, item.data.lng]).addTo(map)
+            .bindPopup('<strong>' + item.data.name + '</strong><br>' + item.data.address)
+            .openPopup();
+    });
+    {% if hospital_json %}
+    const h = {{ hospital_json|safe }};
+    const pm = document.getElementById('primaryMap');
+    if (pm) {
+        const map = L.map(pm, { scrollWheelZoom: false }).setView([h.lat, h.lng], 17);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 20,
+        }).addTo(map);
+        L.marker([h.lat, h.lng]).addTo(map)
+            .bindPopup('<strong>' + h.name + '</strong><br>' + h.address).openPopup();
+    }
+    {% endif %}
+})();
+</script>
+{% endblock %}

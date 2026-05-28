@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Reminder - OkiDoki Healthcare</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9fafb;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 8px 0 0 0;
+            font-size: 14px;
+            opacity: 0.95;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .greeting {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+        .alert-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #92400e;
+        }
+        .alert-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .appointment-details {
+            background-color: #f3f4f6;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #4b5563;
+            min-width: 150px;
+        }
+        .detail-value {
+            color: #1f2937;
+            text-align: right;
+            word-break: break-word;
+        }
+        .location-section {
+            background-color: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .location-section h3 {
+            margin: 0 0 15px 0;
+            color: #1e40af;
+            font-size: 16px;
+        }
+        .location-section p {
+            margin: 8px 0;
+            color: #1e3a8a;
+            font-size: 14px;
+        }
+        .queue-badge {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 13px;
+        }
+        .tips-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #166534;
+            font-size: 14px;
+        }
+        .tips-box strong {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .tips-box ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .tips-box li {
+            margin: 5px 0;
+        }
+        .footer {
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e5e7eb;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📋 Appointment Reminder</h1>
+            <p>Your appointment is coming up soon!</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting">
+                Hello {{ patient_name }},
+            </div>
+
+            <div class="alert-box">
+                <strong>⏰ Your appointment is in {{ time_until_appointment }}!</strong>
+                Please make sure you have enough time to travel to the clinic.
+            </div>
+
+            <!-- Appointment Details -->
+            <div class="appointment-details">
+                <div class="detail-row">
+                    <span class="detail-label">Doctor:</span>
+                    <span class="detail-value"><strong>Dr. {{ doctor_name }}</strong></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Date:</span>
+                    <span class="detail-value">{{ appointment.date|date:"F j, Y" }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Time:</span>
+                    <span class="detail-value">{{ appointment.appointment_time|time:"g:i A" }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Queue Number:</span>
+                    <span class="detail-value"><span class="queue-badge">Q#{{ queue_number }}</span></span>
+                </div>
+            </div>
+
+            <!-- Location Section -->
+            <div class="location-section">
+                <h3>📍 Clinic Location</h3>
+                <p><strong>{{ hospital_name }}</strong></p>
+                <p>{{ hospital_address }}</p>
+            </div>
+
+            <!-- Tips -->
+            <div class="tips-box">
+                <strong>💡 Tips for Your Visit:</strong>
+                <ul>
+                    <li>Arrive 5-10 minutes early</li>
+                    <li>Bring valid ID and insurance cards if applicable</li>
+                    <li>Prepare a list of your symptoms or questions</li>
+                    <li>Check the weather and plan travel accordingly</li>
+                </ul>
+            </div>
+
+            <div class="divider"></div>
+
+            <div style="font-size: 14px; color: #555;">
+                <p>
+                    Need to reschedule or cancel? Visit your appointment dashboard:
+                </p>
+                <p style="margin: 10px 0;">
+                    <a href="{{ appointment_details_url }}" style="color: #667eea; text-decoration: none;">
+                        → View Appointment Details
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="margin: 0 0 10px 0;">
+                OkiDoki Healthcare System<br>
+                Professional Medical Appointments
+            </p>
+            <p style="margin: 0; color: #9ca3af;">
+                support@okidoki.clinic
+            </p>
+        </div>
+    </div>
+</body>
+</html>

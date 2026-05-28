@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Today's Patients{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="row g-4">
+      <div class="col-md-3 col-lg-2">
+        <div class="dash-sidebar-card">
+          <div class="dash-sidebar-header">
+            <div class="dash-sidebar-badge" style="background:linear-gradient(135deg,#2563eb,#4f46e5);"><i class="bi bi-person-badge"></i></div>
+            <div>
+              <div class="dash-sidebar-role">Doctor</div>
+              <div class="dash-sidebar-uname">{{ request.user.get_full_name }}</div>
+            </div>
+          </div>
+          {% include 'doctor/sidebar.html' %}
+        </div>
+      </div>
+      <div class="col-md-9 col-lg-10">
+        <div class="mb-3">
+          <h1 class="dash-title" style="margin-bottom:.1rem;">Today's <span>Patients</span></h1>
+          <p class="dash-subtitle">{{ today }} &mdash; Manage your patient queue for today.</p>
+        </div>
+        <div class="dash-alert-info mb-4">
+          <i class="bi bi-info-circle me-1"></i>
+          When you mark a patient as <strong>In Progress</strong>, the next patient in the queue is automatically notified to head to the clinic.
+        </div>
+
+        <div class="dash-card">
+          {% if appointments %}
+          <div class="table-responsive">
+            <table class="dash-table">
+              <thead><tr><th>Queue</th><th>Patient</th><th>Location</th><th>Time</th><th>Status</th><th>Payment</th><th>Action</th></tr></thead>
+              <tbody>
+                {% for appt in appointments %}
+                <tr class="{% if appt.status == 'in_progress' %}row-progress{% elif appt.status == 'done' %}row-done{% endif %}">
+                  <td>{% if appt.queue_number %}<span class="bs-queue">Q#{{ appt.queue_number }}</span>{% else %}<span class="td-meta">—</span>{% endif %}</td>
+                  <td><span class="td-name">{{ appt.patient.user.get_full_name }}</span></td>
+                  <td class="td-meta">
+                    {% if appt.availability.hospital %}{{ appt.availability.hospital.name }}
+                    {% elif appt.doctor.hospital %}{{ appt.doctor.hospital.name }}
+                    {% else %}—{% endif %}
+                  </td>
+                  <td class="td-meta">{{ appt.availability.start_time }} – {{ appt.availability.end_time }}</td>
+                  <td>
+                    {% if appt.status == 'confirmed' %}<span class="bs bs-confirmed">Confirmed</span>
+                    {% elif appt.status == 'in_progress' %}<span class="bs bs-progress"><i class="bi bi-activity me-1"></i>In Progress</span>
+                    {% elif appt.status == 'done' %}<span class="bs bs-done">Done</span>
+                    {% endif %}
+                  </td>
+                  <td>{% if appt.payment_status == 'paid' %}<span class="bs bs-paid">Paid</span>{% else %}<span class="bs bs-unpaid">Unpaid</span>{% endif %}</td>
+                  <td><a href="{% url 'doctor_appointment_detail' appt.pk %}" class="btn-mini"><i class="bi bi-eye"></i></a></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="dash-empty"><i class="bi bi-people"></i><p>No patients scheduled for today.</p></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

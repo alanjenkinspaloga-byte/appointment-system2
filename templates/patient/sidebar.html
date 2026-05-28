@@ -1,0 +1,22 @@
+<!-- Patient Sidebar -->
+<div class="list-group list-group-flush">
+    <a href="{% url 'patient_dashboard' %}"
+       class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'patient_dashboard' %}active{% endif %}">
+        <i class="bi bi-speedometer2 me-2"></i> Dashboard
+    </a>
+    <a href="{% url 'category_select' %}"
+       class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'category_select' %}active{% endif %}">
+        <i class="bi bi-grid me-2"></i> Find a Doctor
+    </a>
+    <a href="{% url 'patient_appointments' %}"
+       class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'patient_appointments' %}active{% endif %}">
+        <i class="bi bi-journal-text me-2"></i> My Appointments
+        {% if online_appointments_count %}
+            <span class="badge bg-info float-right">{{ online_appointments_count }}</span>
+        {% endif %}
+    </a>
+    <a href="{% url 'symptom_search' %}"
+       class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'symptom_search' %}active{% endif %}">
+        <i class="bi bi-search me-2"></i> Symptom Search
+    </a>
+</div>
