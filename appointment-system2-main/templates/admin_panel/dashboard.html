@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<style>
+/* ── OkiDoki Dashboard – shared tokens ── */
+:root{--db:#2563eb;--di:#7c3aed;--dn:#0a1628;--dbg:#f0f5ff;}
+
+.dash-page{background:var(--dbg);min-height:calc(100vh - 72px);padding:2rem 0 3rem;}
+
+.dash-sidebar-card{background:var(--dn);border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(6,14,31,.22);border:none;}
+.dash-sidebar-header{padding:1.2rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:.75rem;}
+.dash-sidebar-badge{width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.15rem;}
+.dash-sidebar-role{color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:.88rem;}
+.dash-sidebar-uname{color:rgba(255,255,255,.45);font-size:.73rem;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;}
+.dash-sidebar-card .list-group-item{background:transparent;border:none;border-radius:0!important;color:rgba(255,255,255,.55);padding:.65rem 1.25rem;font-family:'Inter',sans-serif;font-size:.875rem;font-weight:500;border-left:3px solid transparent;transition:background .18s,color .18s,border-color .18s;}
+.dash-sidebar-card .list-group-item:hover{background:rgba(255,255,255,.06);color:#fff;border-left-color:rgba(99,102,241,.5);}
+.dash-sidebar-card .list-group-item.active{background:rgba(37,99,235,.18)!important;color:#fff!important;border-left-color:#2563eb;}
+.dash-sidebar-card .list-group-item .badge{background:#ef4444!important;}
+
+.dash-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.65rem;color:var(--dn);margin-bottom:.2rem;line-height:1.2;}
+.dash-title span{background:linear-gradient(90deg,var(--db),var(--di));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.dash-subtitle{color:#64748b;font-family:'Inter',sans-serif;font-size:.875rem;}
+
+.stat-card{background:#fff;border-radius:18px;padding:1.3rem 1.4rem;box-shadow:0 2px 12px rgba(6,14,31,.06);border:1px solid #e8eef8;display:flex;align-items:center;gap:1rem;transition:transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s;}
+.stat-card:hover{transform:translateY(-4px);box-shadow:0 10px 30px rgba(37,99,235,.13);}
+.stat-icon{width:52px;height:52px;border-radius:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.35rem;color:#fff;}
+.stat-icon.blue  {background:linear-gradient(135deg,#2563eb,#3b82f6);}
+.stat-icon.teal  {background:linear-gradient(135deg,#0891b2,#06b6d4);}
+.stat-icon.green {background:linear-gradient(135deg,#059669,#10b981);}
+.stat-icon.amber {background:linear-gradient(135deg,#d97706,#f59e0b);}
+.stat-icon.indigo{background:linear-gradient(135deg,#4f46e5,#7c3aed);}
+.stat-meta .stat-label{color:#64748b;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:500;}
+.stat-meta .stat-value{color:var(--dn);font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.9rem;line-height:1.1;}
+
+.dash-card{background:#fff;border-radius:18px;border:1px solid #e8eef8;box-shadow:0 2px 14px rgba(6,14,31,.05);overflow:hidden;margin-bottom:1.5rem;}
+.dash-card-header{padding:.9rem 1.5rem;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:.9rem;color:var(--dn);}
+.dash-card-header .hi{color:var(--db);margin-right:.45rem;}
+.dash-card-body{padding:1.25rem 1.5rem;}
+
+.btn-dash-primary{background:linear-gradient(135deg,var(--db),var(--di));color:#fff;border:none;border-radius:12px;padding:.55rem 1.3rem;font-weight:600;font-family:'Inter',sans-serif;font-size:.875rem;transition:opacity .2s,transform .2s;text-decoration:none;display:inline-flex;align-items:center;gap:.45rem;}
+.btn-dash-primary:hover{opacity:.88;transform:translateY(-1px);color:#fff;}
+.btn-dash-outline{background:transparent;color:var(--db);border:1.5px solid var(--db);border-radius:12px;padding:.52rem 1.3rem;font-weight:600;font-family:'Inter',sans-serif;font-size:.875rem;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:.45rem;}
+.btn-dash-outline:hover{background:var(--db);color:#fff;}
+.btn-dash-amber{background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;border:none;border-radius:12px;padding:.55rem 1.3rem;font-weight:600;font-family:'Inter',sans-serif;font-size:.875rem;transition:opacity .2s,transform .2s;text-decoration:none;display:inline-flex;align-items:center;gap:.45rem;}
+.btn-dash-amber:hover{opacity:.88;transform:translateY(-1px);color:#fff;}
+</style>
+
+<div class="dash-page">
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="row g-4">
+
+      <!-- ── Sidebar ── -->
+      <div class="col-md-3 col-lg-2">
+        <div class="dash-sidebar-card">
+          <div class="dash-sidebar-header">
+            <div class="dash-sidebar-badge" style="background:linear-gradient(135deg,#1e3a5f,#2563eb);"><i class="bi bi-shield-lock"></i></div>
+            <div>
+              <div class="dash-sidebar-role">Admin Panel</div>
+              <div class="dash-sidebar-uname">{{ request.user.get_full_name }}</div>
+            </div>
+          </div>
+          {% include 'admin_panel/sidebar.html' %}
+        </div>
+      </div>
+
+      <!-- ── Main ── -->
+      <div class="col-md-9 col-lg-10">
+
+        <!-- Welcome -->
+        <div class="mb-4">
+          <h1 class="dash-title">Admin <span>Dashboard</span></h1>
+          <p class="dash-subtitle"><i class="bi bi-bar-chart-line me-1"></i>System overview and quick controls.</p>
+        </div>
+
+        <!-- Stats Row 1 -->
+        <div class="row g-3 mb-3">
+          <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+              <div class="stat-icon blue"><i class="bi bi-person-badge"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">Total Doctors</div>
+                <div class="stat-value">{{ total_doctors }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+              <div class="stat-icon amber"><i class="bi bi-hourglass-split"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">Pending Approval</div>
+                <div class="stat-value">{{ pending_doctors }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+              <div class="stat-icon green"><i class="bi bi-people"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">Total Patients</div>
+                <div class="stat-value">{{ total_patients }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+              <div class="stat-icon indigo"><i class="bi bi-hospital"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">Hospitals</div>
+                <div class="stat-value">{{ total_hospitals }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Row 2 -->
+        <div class="row g-3 mb-4">
+          <div class="col-sm-6 col-xl-4">
+            <div class="stat-card">
+              <div class="stat-icon blue"><i class="bi bi-calendar-check"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">Total Appointments</div>
+                <div class="stat-value">{{ total_appointments }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-xl-4">
+            <div class="stat-card">
+              <div class="stat-icon teal"><i class="bi bi-calendar-day"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">Today's Appointments</div>
+                <div class="stat-value">{{ todays_appointments }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-xl-4">
+            <div class="stat-card">
+              <div class="stat-icon amber"><i class="bi bi-clock"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">Pending Appointments</div>
+                <div class="stat-value">{{ pending_appointments }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <span><i class="bi bi-lightning hi"></i>Quick Actions</span>
+          </div>
+          <div class="dash-card-body" style="padding:.9rem 1.5rem;">
+            <a href="{% url 'admin_doctors' %}?status=pending" class="btn-dash-amber me-2 mb-1"><i class="bi bi-person-check"></i> Review Pending Doctors</a>
+            <a href="{% url 'admin_hospital_create' %}" class="btn-dash-primary me-2 mb-1"><i class="bi bi-hospital"></i> Add Hospital</a>
+            <a href="{% url 'admin_appointments' %}" class="btn-dash-outline me-2 mb-1"><i class="bi bi-calendar-check"></i> View All Appointments</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

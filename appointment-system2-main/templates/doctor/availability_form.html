@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="row g-4">
+      <div class="col-md-3 col-lg-2">
+        <div class="dash-sidebar-card">
+          <div class="dash-sidebar-header">
+            <div class="dash-sidebar-badge" style="background:linear-gradient(135deg,#2563eb,#4f46e5);"><i class="bi bi-person-badge"></i></div>
+            <div>
+              <div class="dash-sidebar-role">Doctor</div>
+              <div class="dash-sidebar-uname">{{ request.user.get_full_name }}</div>
+            </div>
+          </div>
+          {% include 'doctor/sidebar.html' %}
+        </div>
+      </div>
+      <div class="col-md-9 col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+          <h1 class="dash-title mb-0"><span>{{ title }}</span></h1>
+          <a href="{% url 'availability_list' %}" class="btn-dash-outline-muted"><i class="bi bi-arrow-left"></i> Back to Schedule</a>
+        </div>
+        <div class="dash-card" style="max-width:680px;">
+          <div class="dash-card-body">
+            <form method="post">
+              {% csrf_token %}
+              {% for field in form %}
+              <div class="mb-3">
+                <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+              </div>
+              {% endfor %}
+              {% if form.non_field_errors %}
+              <div class="dash-alert-warn mb-3">{{ form.non_field_errors }}</div>
+              {% endif %}
+              <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn-dash-primary"><i class="bi bi-check-lg"></i> Save</button>
+                <a href="{% url 'availability_list' %}" class="btn-dash-outline-muted">Cancel</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — Admin{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="row g-4">
+      <div class="col-md-3 col-lg-2">
+        <div class="dash-sidebar-card">
+          <div class="dash-sidebar-header">
+            <div class="dash-sidebar-badge" style="background:linear-gradient(135deg,#1e3a5f,#2563eb);"><i class="bi bi-shield-lock"></i></div>
+            <div><div class="dash-sidebar-role">Admin</div><div class="dash-sidebar-uname">{{ request.user.get_full_name }}</div></div>
+          </div>
+          {% include 'admin_panel/sidebar.html' %}
+        </div>
+      </div>
+      <div class="col-md-9 col-lg-10">
+        <div class="mb-4">
+          <h1 class="dash-title mb-0"><span>{{ title }}</span></h1>
+          <p class="dash-subtitle">Manage hospital locations and details.</p>
+        </div>
+
+        <div class="dash-card" style="max-width:680px;">
+          <div class="dash-card-header"><i class="bi bi-hospital hi"></i> Hospital Details</div>
+          <div class="dash-card-body">
+            <form method="post">
+              {% csrf_token %}
+              {% for field in form %}
+              <div class="mb-3">
+                <label class="form-label fw-semibold">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+              </div>
+              {% endfor %}
+              <div class="d-flex gap-2 mt-2">
+                <button type="submit" class="btn-dash-primary"><i class="bi bi-check-lg"></i> Save Hospital</button>
+                <a href="{% url 'admin_hospitals' %}" class="btn-dash-outline-muted"><i class="bi bi-x"></i> Cancel</a>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="dash-alert-info mt-4" style="max-width:680px;">
+          <i class="bi bi-info-circle me-2"></i>
+          <strong>Tip:</strong> To find latitude/longitude, go to
+          <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">Google Maps</a>,
+          right-click on the location, and copy the coordinates.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Reminder - OkiDoki Healthcare</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9fafb;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 8px 0 0 0;
+            font-size: 14px;
+            opacity: 0.95;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .greeting {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+        .alert-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #92400e;
+        }
+        .alert-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .appointment-details {
+            background-color: #f3f4f6;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #4b5563;
+            min-width: 150px;
+        }
+        .detail-value {
+            color: #1f2937;
+            text-align: right;
+        }
+        .video-section {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .video-section h3 {
+            margin: 0 0 15px 0;
+            color: #2e7d32;
+            font-size: 16px;
+        }
+        .video-section p {
+            margin: 0 0 15px 0;
+            color: #555;
+            font-size: 14px;
+        }
+        .btn-primary {
+            display: inline-block;
+            background-color: #4caf50;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+        .queue-badge {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 13px;
+        }
+        .footer {
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e5e7eb;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎥 Appointment Reminder</h1>
+            <p>Your online consultation is coming up!</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting">
+                Hello {{ patient_name }},
+            </div>
+
+            <div class="alert-box">
+                <strong>⏰ Your appointment is in {{ time_until_appointment }}!</strong>
+                Don't forget to join your video call on time.
+            </div>
+
+            <!-- Appointment Details -->
+            <div class="appointment-details">
+                <div class="detail-row">
+                    <span class="detail-label">Doctor:</span>
+                    <span class="detail-value"><strong>Dr. {{ doctor_name }}</strong></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Date:</span>
+                    <span class="detail-value">{{ appointment.date|date:"F j, Y" }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Time:</span>
+                    <span class="detail-value">{{ appointment.appointment_time|time:"g:i A" }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Queue Number:</span>
+                    <span class="detail-value"><span class="queue-badge">Q#{{ queue_number }}</span></span>
+                </div>
+            </div>
+
+            <!-- Video Call Section -->
+            <div class="video-section">
+                <h3>🎥 Join Your Video Consultation</h3>
+                <p>No signup or software installation needed! Click the button below to join your video call.</p>
+                <a href="{{ jitsi_link }}" class="btn-primary">▶ Join Video Call Now</a>
+                <p style="margin: 15px 0 0 0; font-size: 13px; color: #666;">
+                    <strong>Tip:</strong> Join 5 minutes early to test your camera and microphone.
+                </p>
+            </div>
+
+            <div class="divider"></div>
+
+            <div style="font-size: 14px; color: #555;">
+                <p>
+                    If you need to reschedule or have any questions, please visit your dashboard:
+                </p>
+                <a href="{{ appointment_details_url }}" style="color: #667eea; text-decoration: none;">
+                    View Appointment Details
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="margin: 0 0 10px 0;">
+                OkiDoki Healthcare System<br>
+                Professional Medical Appointments
+            </p>
+            <p style="margin: 0; color: #9ca3af;">
+                support@okidoki.clinic
+            </p>
+        </div>
+    </div>
+</body>
+</html>

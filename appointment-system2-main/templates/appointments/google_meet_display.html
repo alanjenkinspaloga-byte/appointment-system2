@@ -1,0 +1,103 @@
+<!-- Google Meet Link Display - Include in appointment detail templates -->
+
+{% load static %}
+
+{% if appointment.is_online_consultation %}
+    <div class="card border-info mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-video mr-2"></i>Online Consultation via Google Meet
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if appointment.google_meet_link %}
+                <div class="alert alert-success" role="alert">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <strong>Google Meet Link is Ready!</strong>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <p class="text-muted mb-3">
+                            A Google Meet video call link has been created for this online consultation. 
+                            An email invitation has been sent to both the doctor and patient.
+                        </p>
+                        
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" id="meetLink" 
+                                   value="{{ appointment.google_meet_link }}" readonly>
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button" 
+                                        onclick="copyMeetLink()" title="Copy link">
+                                    <i class="fas fa-copy mr-1"></i>Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        {% if show_meet_button %}
+                            <a href="{{ appointment.google_meet_link }}" target="_blank" 
+                               class="btn btn-info btn-block btn-lg">
+                                <i class="fas fa-video mr-2"></i>Join Google Meet
+                            </a>
+                        {% else %}
+                            <button class="btn btn-secondary btn-block" disabled>
+                                <i class="fas fa-lock mr-2"></i>Available at appointment time
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <hr class="my-3">
+
+                <div class="row text-muted small">
+                    <div class="col-md-6">
+                        <p>
+                            <strong>Appointment Date:</strong><br>
+                            {{ appointment.date|date:"F d, Y" }} at {{ appointment.appointment_time|time:"g:i A" }}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p>
+                            <strong>Duration:</strong><br>
+                            30 minutes
+                        </p>
+                    </div>
+                </div>
+
+                <div class="alert alert-light border" role="alert">
+                    <small>
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        <strong>Tip:</strong> Join 5-10 minutes before your appointment time. 
+                        Make sure your camera and microphone are working properly.
+                    </small>
+                </div>
+
+            {% else %}
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-hourglass-half mr-2"></i>
+                    <strong>Google Meet Link Coming Soon</strong>
+                    <p class="mt-2 mb-0">
+                        The Google Meet link will be created and shared once this appointment is confirmed.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+    function copyMeetLink() {
+        var meetLink = document.getElementById('meetLink');
+        meetLink.select();
+        document.execCommand('copy');
+        
+        var btn = event.target.closest('button');
+        var originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check mr-1"></i>Copied!';
+        setTimeout(function() {
+            btn.innerHTML = originalText;
+        }, 2000);
+    }
+    </script>
+
+{% endif %}

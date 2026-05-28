@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Manage Doctors{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="row g-4">
+      <div class="col-md-3 col-lg-2">
+        <div class="dash-sidebar-card">
+          <div class="dash-sidebar-header">
+            <div class="dash-sidebar-badge" style="background:linear-gradient(135deg,#1e3a5f,#2563eb);"><i class="bi bi-shield-lock"></i></div>
+            <div>
+              <div class="dash-sidebar-role">Admin</div>
+              <div class="dash-sidebar-uname">{{ request.user.get_full_name }}</div>
+            </div>
+          </div>
+          {% include 'admin_panel/sidebar.html' %}
+        </div>
+      </div>
+      <div class="col-md-9 col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+          <div>
+            <h1 class="dash-title mb-0">Manage <span>Doctors</span></h1>
+            <p class="dash-subtitle">Review, approve, or revoke doctor accounts.</p>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'admin_doctors' %}" class="btn-mini{% if not status_filter %}-muted" style="background:var(--dn);color:#fff;{% else %}-muted{% endif %}">All</a>
+            <a href="{% url 'admin_doctors' %}?status=pending" class="btn-mini-amber{% if status_filter == 'pending' %}" style="font-weight:700;{% else %}{% endif %}">Pending</a>
+            <a href="{% url 'admin_doctors' %}?status=approved" class="btn-mini-green{% if status_filter == 'approved' %}" style="font-weight:700;{% else %}{% endif %}">Approved</a>
+          </div>
+        </div>
+
+        <div class="dash-card">
+          {% if doctors %}
+          <div class="table-responsive">
+            <table class="dash-table">
+              <thead><tr><th>Doctor</th><th>Specialization</th><th>Hospital</th><th>License#</th><th>Fee</th><th>Docs</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody>
+                {% for doctor in doctors %}
+                <tr>
+                  <td>
+                    <span class="td-name">Dr. {{ doctor.user.get_full_name }}</span>
+                    <span class="td-meta d-block">{{ doctor.user.email }}</span>
+                  </td>
+                  <td class="td-meta">{{ doctor.specialization }}</td>
+                  <td class="td-meta">{{ doctor.hospital.name|default:"Not assigned" }}</td>
+                  <td class="td-meta">{{ doctor.license_number|default:"—" }}</td>
+                  <td class="td-meta">&#8369;{{ doctor.consultation_fee }}</td>
+                  <td>
+                    {% if doctor.license_certificate or doctor.professional_id_doc or doctor.board_certification or doctor.government_id_doc %}
+                      <span class="bs bs-docs"><i class="bi bi-paperclip me-1"></i>Uploaded</span>
+                    {% else %}
+                      <span class="bs bs-nodocs">None</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if doctor.is_approved %}
+                      <span class="bs bs-approved"><i class="bi bi-check-circle me-1"></i>Approved</span>
+                    {% else %}
+                      <span class="bs bs-pending"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="d-flex gap-1">
+                      <a href="{% url 'admin_review_doctor' doctor.pk %}" class="btn-mini"><i class="bi bi-eye"></i></a>
+                      <form method="post" action="{% url 'admin_approve_doctor' doctor.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="admin_doctors">
+                        {% if not doctor.is_approved %}
+                          <button name="action" value="approve" class="btn-mini-green"><i class="bi bi-check-lg"></i></button>
+                        {% else %}
+                          <button name="action" value="reject" class="btn-mini-red"><i class="bi bi-x-lg"></i></button>
+                        {% endif %}
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="dash-empty"><i class="bi bi-person-badge"></i><p>No doctors found.</p></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
