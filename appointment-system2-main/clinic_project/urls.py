@@ -8,8 +8,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from appointments.views import health_check
 
 urlpatterns = [
+    # Health check endpoint for Render deployment monitoring
+    path('health/', health_check, name='health_check'),
+
     # Django admin panel
     path('admin/', admin.site.urls),
 

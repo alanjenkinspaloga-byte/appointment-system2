@@ -25,6 +25,8 @@ from django.views import View
 from django.utils import timezone
 from django.db import IntegrityError
 from django.db.models import Q, Count
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 
 from .models import (
     Profile, Doctor, Patient, Hospital,
@@ -42,6 +44,21 @@ from .forms import (
 )
 from .decorators import doctor_required, patient_required, admin_required
 from .utils import translate_to_english, language_display_name
+
+
+# ============================================================
+# HEALTH CHECK (for Render deployment monitoring)
+# ============================================================
+
+@require_http_methods(["GET", "HEAD"])
+def health_check(request):
+    """Health check endpoint for Render deployment monitoring.
+    Returns 200 OK without requiring authentication.
+    """
+    return JsonResponse({
+        "status": "ok",
+        "service": "appointment-system"
+    }, status=200)
 
 
 # ============================================================
