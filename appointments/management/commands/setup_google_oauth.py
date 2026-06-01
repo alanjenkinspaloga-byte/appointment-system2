@@ -66,24 +66,36 @@ class Command(BaseCommand):
 
             self.stdout.write(f'✓ Site: {site.name} ({site.domain})')
 
-            # Get or create Google SocialApp
-            google_app, created = SocialApp.objects.get_or_create(
-                provider='google',
-                defaults={
-                    'name': 'Google OAuth',
-                    'client_id': client_id,
-                    'secret': secret,
-                }
-            )
+            # Clean up any duplicate Google apps (keep only one)
+            google_apps = SocialApp.objects.filter(provider='google')
+            if google_apps.count() > 1:
+                self.stdout.write(self.style.WARNING(f'\n⚠ Found {google_apps.count()} duplicate Google OAuth apps. Cleaning up...'))
+                # Keep the named one, delete others
+                named = [a for a in google_apps if a.name.strip()]
+                unnamed = [a for a in google_apps if not a.name.strip()]
+                
+                to_delete = unnamed + named[1:]
+                for app in to_delete:
+                    app.delete()
+                    self.stdout.write(f'  ✓ Deleted duplicate app (ID={app.id})')
+                
+                google_apps = SocialApp.objects.filter(provider='google')
 
-            if created:
-                self.stdout.write(self.style.SUCCESS(f'\n✓ Created Google OAuth App'))
-            else:
-                # Update if it exists
+            # Get or create Google SocialApp
+            if google_apps.exists():
+                google_app = google_apps.first()
                 google_app.client_id = client_id
                 google_app.secret = secret
                 google_app.save()
                 self.stdout.write(self.style.SUCCESS(f'\n✓ Updated Google OAuth App'))
+            else:
+                google_app = SocialApp.objects.create(
+                    provider='google',
+                    name='Google OAuth',
+                    client_id=client_id,
+                    secret=secret,
+                )
+                self.stdout.write(self.style.SUCCESS(f'\n✓ Created Google OAuth App'))
 
             # Associate app with site
             if site not in google_app.sites.all():
