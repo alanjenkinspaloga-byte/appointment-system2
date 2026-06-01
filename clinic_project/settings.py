@@ -109,8 +109,8 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = 'optional'
 # Store OAuth tokens in database for API access later
 SOCIALACCOUNT_STORE_TOKENS = True
 
-# Adapter for Google OAuth
-SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
+# Adapter for Google OAuth (auto-cleans duplicate apps)
+SOCIALACCOUNT_ADAPTER = 'appointments.views_oauth.SafeSocialAccountAdapter'
 
 # Google OAuth provider settings
 SOCIALACCOUNT_PROVIDERS = {

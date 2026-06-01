@@ -2,6 +2,49 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib.admin.views.decorators import staff_member_required
 from allauth.socialaccount.models import SocialApp
+from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+
+
+class SafeSocialAccountAdapter(DefaultSocialAccountAdapter):
+    """
+    Custom adapter that auto-cleans duplicate Google OAuth apps
+    before trying to fetch them.
+    
+    This prevents MultipleObjectsReturned errors during OAuth flow.
+    """
+    
+    def get_app(self, request, provider, client_id=None):
+        """
+        Override get_app to auto-clean duplicates before fetching.
+        """
+        # Auto-cleanup for Google provider
+        if provider == 'google':
+            google_apps = SocialApp.objects.filter(provider='google')
+            
+            if google_apps.count() > 1:
+                # Multiple apps exist - clean them up
+                named_apps = [app for app in google_apps if app.name.strip()]
+                unnamed_apps = [app for app in google_apps if not app.name.strip()]
+                
+                if named_apps:
+                    to_keep = named_apps[0]
+                    to_delete = unnamed_apps + named_apps[1:]
+                else:
+                    to_keep = google_apps[0]
+                    to_delete = google_apps[1:]
+                
+                # Delete duplicates
+                deleted_count = len(to_delete)
+                for app in to_delete:
+                    app.delete()
+                
+                # Log the cleanup
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"SafeSocialAccountAdapter: Auto-cleaned {deleted_count} duplicate Google OAuth apps. Kept ID={to_keep.id}")
+        
+        # Call parent method (now with clean data)
+        return super().get_app(request, provider, client_id)
 
 
 @require_http_methods(["GET"])
