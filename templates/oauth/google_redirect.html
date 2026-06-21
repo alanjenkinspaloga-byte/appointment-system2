@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Connecting to Google - OkiDoki{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-blue: #1a56db;
+        --primary-gradient: linear-gradient(135deg, #1a56db, #0891b2);
+    }
+    
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    
+    .oauth-container {
+        background: white;
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        text-align: center;
+        max-width: 420px;
+        width: 100%;
+        animation: slideUp 0.5s ease-out;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .oauth-header {
+        margin-bottom: 2rem;
+    }
+    
+    .logo-box {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        background: var(--primary-gradient);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        box-shadow: 0 8px 24px rgba(26, 86, 219, 0.3);
+    }
+    
+    .oauth-header h2 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.03em;
+    }
+    
+    .oauth-header p {
+        color: #64748b;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+    
+    /* Google Logo Loading Animation */
+    .google-logo {
+        width: 50px;
+        height: 50px;
+        margin: 2rem auto;
+        animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.7;
+            transform: scale(1.05);
+        }
+    }
+    
+    /* Loading Spinner */
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        margin: 2rem auto;
+        border: 4px solid #e2e8f0;
+        border-top: 4px solid var(--primary-blue);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .oauth-body {
+        margin: 2rem 0;
+    }
+    
+    .oauth-body h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1rem;
+    }
+    
+    .oauth-body p {
+        color: #64748b;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+    
+    .oauth-steps {
+        background: #f8faff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        text-align: left;
+    }
+    
+    .step {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .step:last-child {
+        margin-bottom: 0;
+    }
+    
+    .step-icon {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        background: var(--primary-gradient);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-top: 0.2rem;
+    }
+    
+    .step-content h4 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.2rem;
+    }
+    
+    .step-content p {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin: 0;
+    }
+    
+    .oauth-footer {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    .oauth-footer p {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        margin: 0;
+    }
+    
+    .oauth-footer a {
+        color: var(--primary-blue);
+        text-decoration: none;
+        font-weight: 600;
+    }
+    
+    .oauth-footer a:hover {
+        text-decoration: underline;
+    }
+    
+    /* Responsive */
+    @media (max-width: 640px) {
+        .oauth-container {
+            padding: 2rem 1.5rem;
+            margin: 1rem;
+        }
+        
+        .oauth-header h2 {
+            font-size: 1.5rem;
+        }
+        
+        .logo-box {
+            width: 70px;
+            height: 70px;
+            font-size: 1.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="oauth-container">
+    <!-- Header -->
+    <div class="oauth-header">
+        <div class="logo-box">🔐</div>
+        <h2>Connecting to Google</h2>
+        <p>Secure authentication in progress</p>
+    </div>
+    
+    <!-- Loading Animation -->
+    <div class="oauth-body">
+        <div class="loading-spinner"></div>
+        <h3>One moment, please</h3>
+        <p>We're redirecting you to Google to securely authenticate your account.</p>
+        
+        <!-- Steps Info -->
+        <div class="oauth-steps">
+            <div class="step">
+                <div class="step-icon">1</div>
+                <div class="step-content">
+                    <h4>Sign in with Google</h4>
+                    <p>You'll be redirected to a secure Google page</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-icon">2</div>
+                <div class="step-content">
+                    <h4>Grant Permissions</h4>
+                    <p>Approve OkiDoki to access your basic info</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-icon">3</div>
+                <div class="step-content">
+                    <h4>Account Created</h4>
+                    <p>You'll be logged in and ready to go</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="oauth-footer">
+        <p>
+            Having trouble? <a href="{% url 'login' %}">Try manual login</a> or <a href="{% url 'contact_message' %}">contact support</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    // Auto-redirect to Google after 500ms for better UX
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            // This will be handled by django-allauth
+            // The actual redirect happens server-side via safe_provider_login_url
+        }, 500);
+    });
+</script>
+{% endblock %}
