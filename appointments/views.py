@@ -90,7 +90,7 @@ class RegisterView(View):
                         'is_approved': False,
                     },
                 )
-                login(request, user)
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 messages.info(
                     request,
                     'Account created! Please complete your professional information below.'
@@ -103,7 +103,7 @@ class RegisterView(View):
                     f'Welcome, {user.first_name}! Your patient account is ready.'
                 )
 
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             return redirect('dashboard')
 
         return render(request, self.template_name, {'form': form})
