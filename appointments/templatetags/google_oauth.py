@@ -1,9 +1,11 @@
 """
 Custom template tag for safe Google OAuth URL rendering.
 Handles the MultipleObjectsReturned error gracefully and auto-fixes duplicates.
+Generates direct Google OAuth authorization URL to skip Django intermediate page.
 """
 from django import template
 from django.utils.decorators import sync_and_async_middleware
+from urllib.parse import urlencode
 
 register = template.Library()
 
@@ -11,13 +13,15 @@ register = template.Library()
 @register.simple_tag
 def safe_provider_login_url(request, provider='google'):
     """
-    Safe wrapper around provider_login_url that handles MultipleObjectsReturned.
+    Safe wrapper that generates direct Google OAuth authorization URL.
     
     Automatically cleans up duplicate Google OAuth apps on first use.
-    If multiple apps exist, keeps the named one and deletes unnamed ones.
+    Returns the direct Google OAuth consent URL, skipping any Django intermediate pages.
     """
     try:
         from allauth.socialaccount.models import SocialApp
+        from django.urls import reverse
+        from django.conf import settings
         
         if provider != 'google':
             # For non-Google providers, use the standard method
@@ -56,16 +60,35 @@ def safe_provider_login_url(request, provider='google'):
             logger = logging.getLogger(__name__)
             logger.info(f"Auto-cleaned {len(to_delete)} duplicate Google OAuth apps. Kept ID={to_keep.id}")
         
-        # Now use the standard allauth method
+        # Get the Google app credentials
+        google_app = SocialApp.objects.filter(provider='google').first()
+        if not google_app:
+            return ''
+        
+        # Get the callback URL from the adapter
         try:
             from allauth.socialaccount.adapter import get_adapter
             adapter = get_adapter(request)
-            # After cleanup, there should be only one app, so this should work
-            provider_obj = adapter.get_provider(request, provider)
-            return f"/accounts/google/login/?next=/"
+            provider = adapter.get_provider(request, 'google')
+            callback_url = provider.get_callback_url(request)
         except Exception:
-            # Fallback
-            return f"/accounts/google/login/?next=/"
+            # Fallback: construct the callback URL manually
+            from django.urls import reverse
+            callback_url = request.build_absolute_uri(reverse('socialaccount_callback', args=['google']))
+        
+        # Build direct Google OAuth authorization URL
+        google_oauth_url = 'https://accounts.google.com/o/oauth2/v2/auth'
+        
+        params = {
+            'client_id': google_app.client_id,
+            'redirect_uri': callback_url,
+            'response_type': 'code',
+            'scope': 'openid profile email',
+            'access_type': 'offline',
+            'prompt': 'consent',  # Always show account selection
+        }
+        
+        return f"{google_oauth_url}?{urlencode(params)}"
     
     except Exception as e:
         # Fallback: return empty string instead of crashing
