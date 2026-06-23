@@ -6,6 +6,9 @@ Generates direct Google OAuth authorization URL to skip Django intermediate page
 from django import template
 from django.utils.decorators import sync_and_async_middleware
 from urllib.parse import urlencode
+import logging
+
+logger = logging.getLogger(__name__)
 
 register = template.Library()
 
@@ -17,6 +20,7 @@ def safe_provider_login_url(request, provider='google'):
     
     Automatically cleans up duplicate Google OAuth apps on first use.
     Returns the direct Google OAuth consent URL, skipping any Django intermediate pages.
+    Falls back to allauth's standard URL if direct generation fails.
     """
     try:
         from allauth.socialaccount.models import SocialApp
@@ -35,7 +39,8 @@ def safe_provider_login_url(request, provider='google'):
         google_apps = SocialApp.objects.filter(provider='google')
         
         if not google_apps.exists():
-            return ''
+            logger.error("No Google OAuth app found in database - falling back to allauth URL")
+            return "/accounts/google/login/?next=/"
         
         # Auto-cleanup: if multiple apps exist, fix it automatically
         if google_apps.count() > 1:
@@ -55,26 +60,35 @@ def safe_provider_login_url(request, provider='google'):
             for app in to_delete:
                 app.delete()
             
-            # Log the cleanup (optional)
-            import logging
-            logger = logging.getLogger(__name__)
             logger.info(f"Auto-cleaned {len(to_delete)} duplicate Google OAuth apps. Kept ID={to_keep.id}")
         
         # Get the Google app credentials
         google_app = SocialApp.objects.filter(provider='google').first()
         if not google_app:
-            return ''
+            logger.error("Google OAuth app not found after cleanup - falling back to allauth URL")
+            return "/accounts/google/login/?next=/"
+        
+        if not google_app.client_id:
+            logger.error(f"Google OAuth app (ID={google_app.id}) has no client_id configured - falling back to allauth URL")
+            return "/accounts/google/login/?next=/"
+        
+        logger.info(f"Using Google OAuth app: {google_app.name} (ID={google_app.id}, client_id={google_app.client_id[:20]}...)")
         
         # Get the callback URL from the adapter
         try:
             from allauth.socialaccount.adapter import get_adapter
             adapter = get_adapter(request)
-            provider = adapter.get_provider(request, 'google')
-            callback_url = provider.get_callback_url(request)
-        except Exception:
+            oauth_provider = adapter.get_provider(request, 'google')
+            callback_url = oauth_provider.get_callback_url(request)
+            logger.info(f"Using callback URL: {callback_url}")
+        except Exception as e:
             # Fallback: construct the callback URL manually
-            from django.urls import reverse
-            callback_url = request.build_absolute_uri(reverse('socialaccount_callback', args=['google']))
+            logger.warning(f"Failed to get callback URL from adapter: {e}, using fallback")
+            try:
+                callback_url = request.build_absolute_uri(reverse('socialaccount_callback', args=['google']))
+            except Exception as e2:
+                logger.error(f"Failed to build callback URL: {e2} - falling back to allauth URL")
+                return "/accounts/google/login/?next=/"
         
         # Build direct Google OAuth authorization URL
         google_oauth_url = 'https://accounts.google.com/o/oauth2/v2/auth'
@@ -88,11 +102,11 @@ def safe_provider_login_url(request, provider='google'):
             'prompt': 'consent',  # Always show account selection
         }
         
-        return f"{google_oauth_url}?{urlencode(params)}"
+        final_url = f"{google_oauth_url}?{urlencode(params)}"
+        logger.info(f"Generated direct OAuth URL (length: {len(final_url)} chars)")
+        return final_url
     
     except Exception as e:
-        # Fallback: return empty string instead of crashing
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.exception(f"Error in safe_provider_login_url: {e}")
-        return ''
+        # Fallback to allauth's default URL
+        logger.exception(f"Error in safe_provider_login_url: {e} - falling back to allauth URL")
+        return "/accounts/google/login/?next=/"

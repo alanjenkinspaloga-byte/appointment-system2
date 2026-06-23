@@ -5,7 +5,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
-from .views_oauth import cleanup_duplicate_google_oauth
+from .views_oauth import cleanup_duplicate_google_oauth, debug_google_oauth_config
 
 urlpatterns = [
 
@@ -50,6 +50,7 @@ urlpatterns = [
 
     # ---- ADMIN URLS ----
     path('admin/cleanup-google-oauth/', cleanup_duplicate_google_oauth, name='cleanup_google_oauth'),
+    path('debug-oauth-config/', debug_google_oauth_config, name='debug_oauth_config'),
     path('admin-panel/dashboard/',
          views.AdminDashboardView.as_view(), name='admin_dashboard'),
     path('admin-panel/doctors/',

@@ -277,3 +277,44 @@ def cleanup_duplicate_google_oauth(request):
             'status': 'error',
             'message': f'Error during cleanup: {str(e)}'
         }, status=500)
+
+
+@require_http_methods(["GET"])
+@staff_member_required
+def debug_google_oauth_config(request):
+    """
+    Admin-only endpoint to debug Google OAuth configuration.
+    
+    Access via: /debug-oauth-config/
+    Shows database config and template tag output for debugging.
+    """
+    try:
+        from appointments.templatetags.google_oauth import safe_provider_login_url
+        
+        google_apps = SocialApp.objects.filter(provider='google')
+        
+        debug_info = {
+            'status': 'debug',
+            'google_apps_count': google_apps.count(),
+            'apps': [],
+            'template_tag_url': safe_provider_login_url(request, 'google'),
+        }
+        
+        for app in google_apps:
+            debug_info['apps'].append({
+                'id': app.id,
+                'name': app.name,
+                'provider': app.provider,
+                'client_id': f"{app.client_id[:20]}..." if app.client_id else 'MISSING',
+                'has_secret': bool(app.secret),
+                'sites': list(app.sites.values_list('domain', flat=True))
+            })
+        
+        return JsonResponse(debug_info)
+    
+    except Exception as e:
+        logger.exception(f"Error in debug endpoint: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Debug error: {str(e)}'
+        }, status=500)
