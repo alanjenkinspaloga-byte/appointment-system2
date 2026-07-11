@@ -19,6 +19,22 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 
+def _safe_full_name(user):
+    """Return a safe display name for a User-like object."""
+    if not user:
+        return None
+
+    try:
+        full_name = user.get_full_name()
+    except Exception:
+        full_name = None
+
+    if full_name:
+        return full_name
+
+    return getattr(user, 'username', None) or getattr(user, 'email', None)
+
+
 # --------------------------------------------------
 # ROLE CHOICES
 # --------------------------------------------------
@@ -72,7 +88,8 @@ class Profile(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.get_full_name()} ({self.get_role_display()})"
+        name = _safe_full_name(self.user) or getattr(self.user, 'username', None) or 'User'
+        return f"{name} ({self.get_role_display()})"
 
     class Meta:
         ordering = ['-created_at']
@@ -206,7 +223,8 @@ class Doctor(models.Model):
 
     def __str__(self):
         tag = "Approved" if self.is_approved else "Pending"
-        return f"Dr. {self.user.get_full_name()} — {self.specialization} [{tag}]"
+        name = _safe_full_name(self.user) or getattr(self.user, 'username', None) or 'Doctor'
+        return f"Dr. {name} — {self.specialization} [{tag}]"
 
     class Meta:
         ordering = ['user__last_name']
@@ -228,7 +246,8 @@ class Patient(models.Model):
     emergency_contact = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
-        return f"Patient: {self.user.get_full_name()}"
+        name = _safe_full_name(self.user) or getattr(self.user, 'username', None) or 'Patient'
+        return f"Patient: {name}"
 
     class Meta:
         ordering = ['user__last_name']
@@ -297,9 +316,14 @@ class Availability(models.Model):
         elif self.hospital:
             loc = self.hospital.name
         else:
-            loc = self.doctor.hospital.name if self.doctor.hospital else 'Primary'
+            loc = self.doctor.hospital.name if self.doctor and self.doctor.hospital else 'Primary'
+
+        doctor_name = _safe_full_name(getattr(self.doctor, 'user', None))
+        if not doctor_name:
+            doctor_name = f'Doctor#{getattr(self.doctor, "id", "—")}'
+
         return (
-            f"Dr. {self.doctor.user.get_full_name()} | "
+            f"Dr. {doctor_name} | "
             f"{self.date} {self.start_time}–{self.end_time} @ {loc}"
         )
 
@@ -455,9 +479,19 @@ class Appointment(models.Model):
         return 1
 
     def __str__(self):
+        patient_user = getattr(self.patient, 'user', None)
+        doctor_user = getattr(self.doctor, 'user', None)
+
+        patient_name = _safe_full_name(patient_user) or getattr(patient_user, 'username', None)
+        if not patient_name:
+            patient_name = f"Patient#{self.patient_id or '—'}"
+
+        doctor_name = _safe_full_name(doctor_user) or getattr(doctor_user, 'username', None)
+        if not doctor_name:
+            doctor_name = f"Doctor#{self.doctor_id or '—'}"
+
         return (
-            f"#{self.pk} | {self.patient.user.get_full_name()} → "
-            f"Dr. {self.doctor.user.get_full_name()} | "
+            f"#{self.pk} | {patient_name} → Dr. {doctor_name} | "
             f"{self.date} Q#{self.queue_number or '—'} | {self.get_status_display()}"
         )
 
