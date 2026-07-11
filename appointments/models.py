@@ -479,20 +479,35 @@ class Appointment(models.Model):
         return 1
 
     def __str__(self):
-        patient_user = getattr(self.patient, 'user', None)
-        doctor_user = getattr(self.doctor, 'user', None)
+        patient_name = f"Patient#{self.patient_id or '—'}"
+        doctor_name = f"Doctor#{self.doctor_id or '—'}"
 
-        patient_name = _safe_full_name(patient_user) or getattr(patient_user, 'username', None)
-        if not patient_name:
+        try:
+            patient_user = getattr(self.patient, 'user', None)
+            if patient_user:
+                safe_name = _safe_full_name(patient_user) or getattr(patient_user, 'username', None)
+                if safe_name:
+                    patient_name = safe_name
+        except Exception:
             patient_name = f"Patient#{self.patient_id or '—'}"
 
-        doctor_name = _safe_full_name(doctor_user) or getattr(doctor_user, 'username', None)
-        if not doctor_name:
+        try:
+            doctor_user = getattr(self.doctor, 'user', None)
+            if doctor_user:
+                safe_name = _safe_full_name(doctor_user) or getattr(doctor_user, 'username', None)
+                if safe_name:
+                    doctor_name = safe_name
+        except Exception:
             doctor_name = f"Doctor#{self.doctor_id or '—'}"
+
+        try:
+            status_display = self.get_status_display()
+        except Exception:
+            status_display = self.status or 'Unknown'
 
         return (
             f"#{self.pk} | {patient_name} → Dr. {doctor_name} | "
-            f"{self.date} Q#{self.queue_number or '—'} | {self.get_status_display()}"
+            f"{self.date} Q#{self.queue_number or '—'} | {status_display}"
         )
 
     class Meta:
