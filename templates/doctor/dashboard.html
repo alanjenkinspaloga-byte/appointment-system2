@@ -71,6 +71,11 @@
 .dash-empty{padding:2.5rem 1.5rem;text-align:center;color:#94a3b8;}
 .dash-empty i{font-size:2rem;display:block;margin-bottom:.5rem;}
 .dash-empty p{font-family:'Inter',sans-serif;font-size:.875rem;margin:0;}
+
+/* Chart canvas sizing and placeholders */
+.graph-card{min-height:240px}
+.graph-card canvas{width:100% !important; height:200px !important; display:block}
+
 </style>
 
 <div class="dash-page">
@@ -123,52 +128,54 @@
           <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
           <script>
             (function(){
+              function drawNoData(canvas, message){
+                try{
+                  const ctx = canvas.getContext('2d');
+                  ctx.clearRect(0,0,canvas.width,canvas.height);
+                  ctx.fillStyle = '#cbd5e1';
+                  const fontSize = Math.max(12, Math.floor(canvas.height/12));
+                  ctx.font = fontSize + 'px Inter, sans-serif';
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'middle';
+                  ctx.fillText(message, canvas.clientWidth/2, canvas.clientHeight/2);
+                }catch(e){console.warn(e)}
+              }
+
               // Operational: Idle / Overtime / No-shows (percent-based)
               const opCtx = document.getElementById('chartOperational');
               if(opCtx){
-                new Chart(opCtx, {
-                  type: 'doughnut',
-                  data: {
-                    labels: ['Idle (min scaled)','Overtime (%)','No-shows (%)'],
-                    datasets: [{
-                      data: [{{ total_idle_minutes|default:0 }}, {{ overtime_pct|default:0 }}, {{ no_show_pct|default:0 }}],
-                      backgroundColor: ['#60a5fa','#6366f1','#f59e0b']
-                    }]
-                  },
-                  options: {responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}
-                });
+                const opData = [Number({{ total_idle_minutes|default:0 }}), Number({{ overtime_pct|default:0 }}), Number({{ no_show_pct|default:0 }})];
+                const opSum = opData.reduce((a,b)=>a+b,0);
+                if(!opSum){ drawNoData(opCtx, 'No data'); }
+                else{
+                  new Chart(opCtx, {
+                    type: 'doughnut',
+                    data: { labels: ['Idle (min)','Overtime (%)','No-shows (%)'], datasets:[{ data: opData, backgroundColor:['#60a5fa','#6366f1','#f59e0b'] }] },
+                    options: {responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}
+                  });
+                }
               }
 
               // Patient flow: Walk-ins vs Online
               const pfCtx = document.getElementById('chartPatientFlow');
               if(pfCtx){
-                new Chart(pfCtx, {
-                  type: 'doughnut',
-                  data: {
-                    labels: ['Walk-ins','Online'],
-                    datasets: [{
-                      data: [{{ walkin_count|default:0 }}, {{ online_count|default:0 }}],
-                      backgroundColor: ['#2563eb','#06b6d4']
-                    }]
-                  },
-                  options: {responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}
-                });
+                const pfData = [Number({{ walkin_count|default:0 }}), Number({{ online_count|default:0 }})];
+                const pfSum = pfData.reduce((a,b)=>a+b,0);
+                if(!pfSum){ drawNoData(pfCtx, 'No data'); }
+                else{
+                  new Chart(pfCtx, { type:'doughnut', data:{ labels:['Walk-ins','Online'], datasets:[{ data:pfData, backgroundColor:['#2563eb','#06b6d4'] }] }, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}} });
+                }
               }
 
               // Performance: Completed vs Cancelled
               const perfCtx = document.getElementById('chartPerformance');
               if(perfCtx){
-                new Chart(perfCtx, {
-                  type: 'doughnut',
-                  data: {
-                    labels: ['Completed','Cancelled'],
-                    datasets: [{
-                      data: [{{ completed_count|default:0 }}, {{ cancelled_count|default:0 }}],
-                      backgroundColor: ['#10b981','#f97316']
-                    }]
-                  },
-                  options: {responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}
-                });
+                const perfData = [Number({{ completed_count|default:0 }}), Number({{ cancelled_count|default:0 }})];
+                const perfSum = perfData.reduce((a,b)=>a+b,0);
+                if(!perfSum){ drawNoData(perfCtx, 'No data'); }
+                else{
+                  new Chart(perfCtx, { type:'doughnut', data:{ labels:['Completed','Cancelled'], datasets:[{ data:perfData, backgroundColor:['#10b981','#f97316'] }] }, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}} });
+                }
               }
             })();
           </script>
