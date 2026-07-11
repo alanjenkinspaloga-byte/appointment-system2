@@ -14,7 +14,8 @@
 # ============================================================
 
 import json
-from datetime import date
+from collections import Counter
+from datetime import date, timedelta
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
@@ -24,7 +25,7 @@ from django.contrib import messages
 from django.views import View
 from django.utils import timezone
 from django.db import IntegrityError
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Min, F
 
 from .models import (
     Profile, Doctor, Patient, Hospital,
@@ -545,6 +546,125 @@ class DoctorDashboardView(LoginRequiredMixin, View):
             status__in=['confirmed', 'in_progress', 'done']
         ).count()
 
+        week_start = today - timedelta(days=today.weekday())
+        now = timezone.localtime()
+        next_24h = now + timedelta(hours=24)
+        upcoming_qs = Appointment.objects.filter(
+            doctor=doctor,
+            status__in=['pending', 'confirmed'],
+            appointment_time__isnull=False,
+        ).order_by('date', 'appointment_time')
+        upcoming_24h_appointments = [
+            appt for appt in upcoming_qs
+            if appt.get_appointment_datetime() and now <= appt.get_appointment_datetime() <= next_24h
+        ]
+
+        week_appointments = Appointment.objects.filter(
+            doctor=doctor,
+            date__gte=week_start,
+            date__lte=today,
+        )
+
+        completed_count = week_appointments.filter(status='done').count()
+        cancelled_count = week_appointments.filter(status='cancelled').count()
+        no_show_count = 0
+        walkin_count = week_appointments.filter(is_online_consultation=False).count()
+        online_count = week_appointments.filter(is_online_consultation=True).count()
+
+        appointment_times = [
+            appt.get_appointment_datetime()
+            for appt in week_appointments
+            if appt.get_appointment_datetime()
+        ]
+        appointment_times.sort()
+        gaps = [
+            int((appointment_times[i + 1] - appointment_times[i]).total_seconds() / 60)
+            for i in range(len(appointment_times) - 1)
+            if appointment_times[i + 1].date() == appointment_times[i].date()
+        ]
+        avg_gap_minutes = round(sum(gaps) / len(gaps), 1) if gaps else None
+        total_idle_minutes = sum(gaps)
+        peak_hours_counter = Counter(dt.hour for dt in appointment_times)
+        peak_hours = [
+            {'hour': hour, 'count': count}
+            for hour, count in sorted(peak_hours_counter.items(), key=lambda item: (-item[1], item[0]))[:3]
+        ]
+
+        overtime_appointments = week_appointments.filter(
+            appointment_time__isnull=False,
+            appointment_time__gt=F('availability__end_time'),
+        ).count()
+
+        week_patient_ids = set(week_appointments.values_list('patient_id', flat=True).distinct())
+        doctor_patient_appointments = Appointment.objects.filter(doctor=doctor).values(
+            'patient'
+        ).annotate(first_date=Min('date'))
+        first_date_by_patient = {
+            item['patient']: item['first_date']
+            for item in doctor_patient_appointments
+        }
+        new_patients_count = sum(
+            1 for patient_id in week_patient_ids
+            if first_date_by_patient.get(patient_id) >= week_start
+        )
+        returning_patients_count = sum(
+            1 for patient_id in week_patient_ids
+            if first_date_by_patient.get(patient_id) < week_start
+        )
+        follow_up_rate = round(
+            (returning_patients_count / len(week_patient_ids) * 100), 1
+        ) if week_patient_ids else 0
+
+        gender_distribution = {
+            'male': 0,
+            'female': 0,
+            'other': 0,
+            'unknown': 0,
+        }
+        for item in week_appointments.values('patient__gender').annotate(
+            count=Count('patient', distinct=True)
+        ):
+            gender = item['patient__gender'] or 'unknown'
+            gender_distribution[gender] = item['count']
+
+        age_groups = {
+            '0-17': 0,
+            '18-35': 0,
+            '36-55': 0,
+            '56+': 0,
+            'unknown': 0,
+        }
+        patients_in_week = Patient.objects.filter(
+            appointments__doctor=doctor,
+            appointments__date__gte=week_start,
+            appointments__date__lte=today,
+        ).distinct()
+        for patient in patients_in_week:
+            if patient.date_of_birth:
+                age = today.year - patient.date_of_birth.year - (
+                    (today.month, today.day) <
+                    (patient.date_of_birth.month, patient.date_of_birth.day)
+                )
+                if age < 18:
+                    age_groups['0-17'] += 1
+                elif age <= 35:
+                    age_groups['18-35'] += 1
+                elif age <= 55:
+                    age_groups['36-55'] += 1
+                else:
+                    age_groups['56+'] += 1
+            else:
+                age_groups['unknown'] += 1
+
+        top_reasons = list(
+            week_appointments
+            .exclude(reason__isnull=True)
+            .exclude(reason__exact='')
+            .values('reason')
+            .annotate(count=Count('id'))
+            .order_by('-count')[:5]
+        )
+
         context = {
             'doctor': doctor,
             'todays_appointments': todays_appointments,
@@ -557,6 +677,24 @@ class DoctorDashboardView(LoginRequiredMixin, View):
             'total_patients_today': total_patients_today,
             'total_pending': pending_appointments.count(),
             'today': today,
+            'total_appointments_today': todays_appointments.count(),
+            'total_appointments_week': week_appointments.count(),
+            'upcoming_24h_count': len(upcoming_24h_appointments),
+            'completed_count': completed_count,
+            'cancelled_count': cancelled_count,
+            'no_show_count': no_show_count,
+            'walkin_count': walkin_count,
+            'online_count': online_count,
+            'peak_hours': peak_hours,
+            'avg_gap_minutes': avg_gap_minutes,
+            'total_idle_minutes': total_idle_minutes,
+            'overtime_count': overtime_appointments,
+            'new_patients_count': new_patients_count,
+            'returning_patients_count': returning_patients_count,
+            'follow_up_rate': follow_up_rate,
+            'gender_distribution': gender_distribution,
+            'age_groups': age_groups,
+            'top_reasons': top_reasons,
         }
         return render(request, self.template_name, context)
 
@@ -1537,6 +1675,8 @@ class SymptomSearchView(LoginRequiredMixin, View):
 
             doctor_q = Q(specialization_category__in=matched_specializations)
             doctor_q |= Q(specialization__icontains=english_query)
+            for spec in matched_specializations:
+                doctor_q |= Q(specialization__icontains=spec.name)
             doctors = Doctor.objects.filter(
                 doctor_q, is_approved=True,
             ).select_related('user', 'specialization_category', 'hospital').distinct()

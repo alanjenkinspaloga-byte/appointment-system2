@@ -147,6 +147,176 @@
           </div>
         </div>
 
+        <!-- Analytics Overview -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-6 col-xl-3">
+            <div class="stat-card">
+              <div class="stat-icon blue"><i class="bi bi-bar-chart-line"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">Appointments Today</div>
+                <div class="stat-value">{{ total_appointments_today }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="stat-card">
+              <div class="stat-icon teal"><i class="bi bi-calendar-week"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">This Week</div>
+                <div class="stat-value">{{ total_appointments_week }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="stat-card">
+              <div class="stat-icon amber"><i class="bi bi-clock"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">Next 24h</div>
+                <div class="stat-value">{{ upcoming_24h_count }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="stat-card">
+              <div class="stat-icon green"><i class="bi bi-check2-circle"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">Completed</div>
+                <div class="stat-value">{{ completed_count }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6 col-xl-3">
+            <div class="stat-card">
+              <div class="stat-icon indigo"><i class="bi bi-x-circle"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">Cancelled</div>
+                <div class="stat-value">{{ cancelled_count }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="stat-card">
+              <div class="stat-icon blue"><i class="bi bi-door-open"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">Walk-ins</div>
+                <div class="stat-value">{{ walkin_count }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="stat-card">
+              <div class="stat-icon teal"><i class="bi bi-camera-video"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">Online</div>
+                <div class="stat-value">{{ online_count }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="stat-card">
+              <div class="stat-icon amber"><i class="bi bi-clock-history"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">Avg Gap</div>
+                <div class="stat-value">{% if avg_gap_minutes %}{{ avg_gap_minutes }}m{% else %}—{% endif %}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6 col-xl-3">
+            <div class="stat-card">
+              <div class="stat-icon indigo"><i class="bi bi-alarm"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">Idle Time</div>
+                <div class="stat-value">{{ total_idle_minutes }}m</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="stat-card">
+              <div class="stat-icon green"><i class="bi bi-arrow-up-right-circle"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">Overtime Appts</div>
+                <div class="stat-value">{{ overtime_count }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="stat-card">
+              <div class="stat-icon blue"><i class="bi bi-person-plus"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">New Patients</div>
+                <div class="stat-value">{{ new_patients_count }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="stat-card">
+              <div class="stat-icon teal"><i class="bi bi-people-fill"></i></div>
+              <div class="stat-meta">
+                <div class="stat-label">Returning Patients</div>
+                <div class="stat-value">{{ returning_patients_count }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-card mb-4">
+          <div class="dash-card-header"><span><i class="bi bi-bar-chart-fill hi"></i>Doctor Dashboard – Analytics</span></div>
+          <div class="dash-card-body">
+            <div class="row g-3">
+              <div class="col-md-6 col-lg-3">
+                <div class="dash-card" style="padding:1rem;">
+                  <div class="stat-label">Peak Hours</div>
+                  <div class="stat-value">{% for item in peak_hours %}{{ item.hour }}:00 ({{ item.count }}){% if not forloop.last %}, {% endif %}{% empty %}None{% endfor %}</div>
+                </div>
+              </div>
+              <div class="col-md-6 col-lg-3">
+                <div class="dash-card" style="padding:1rem;">
+                  <div class="stat-label">Follow-up Rate</div>
+                  <div class="stat-value">{{ follow_up_rate }}%</div>
+                </div>
+              </div>
+              <div class="col-md-6 col-lg-3">
+                <div class="dash-card" style="padding:1rem;">
+                  <div class="stat-label">Gender Mix</div>
+                  <div class="stat-value">M: {{ gender_distribution.male }}, F: {{ gender_distribution.female }}, O: {{ gender_distribution.other }}</div>
+                </div>
+              </div>
+              <div class="col-md-6 col-lg-3">
+                <div class="dash-card" style="padding:1rem;">
+                  <div class="stat-label">Top Visit Reasons</div>
+                  <div class="stat-value">
+                    {% for item in top_reasons %}
+                      {{ item.reason|truncatechars:30 }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                      No reasons logged
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3 mt-3">
+              <div class="col-md-6">
+                <div class="dash-card" style="padding:1rem;">
+                  <div class="stat-label">Age Distribution</div>
+                  <div class="stat-value">0-17: {{ age_groups."0-17" }}, 18-35: {{ age_groups."18-35" }}, 36-55: {{ age_groups."36-55" }}, 56+: {{ age_groups."56+" }}</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="dash-card" style="padding:1rem;">
+                  <div class="stat-label">No-show Count</div>
+                  <div class="stat-value">{{ no_show_count }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Today's Walk-in Appointments -->
         <div class="dash-card">
           <div class="dash-card-header">
