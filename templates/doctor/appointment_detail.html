@@ -35,7 +35,14 @@
                 <table class="dash-info-table">
                   <tr><th>Patient</th><td>{{ appointment.patient.user.get_full_name }}</td></tr>
                   <tr><th>Date</th><td>{{ appointment.date }}</td></tr>
-                  <tr><th>Time</th><td>{{ appointment.availability.start_time }} – {{ appointment.availability.end_time }}</td></tr>
+                  <tr><th>Type</th><td>{% if appointment.is_online_consultation %}<span class="bs bs-progress">Online</span>{% else %}<span class="bs bs-open">Walk-in</span>{% endif %}</td></tr>
+                  <tr><th>Time</th><td>
+                      {% if appointment.appointment_time %}
+                        {{ appointment.appointment_time|time:"H:i" }}
+                      {% else %}
+                        {{ appointment.availability.start_time }} – {{ appointment.availability.end_time }}
+                      {% endif %}
+                  </td></tr>
                   <tr><th>Queue</th><td>{% if appointment.queue_number %}<span class="bs-queue">Q#{{ appointment.queue_number }}</span>{% else %}—{% endif %}</td></tr>
                   <tr><th>Status</th><td>
                     {% if appointment.status == 'pending' %}<span class="bs bs-pending">Pending</span>

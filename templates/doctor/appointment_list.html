@@ -101,47 +101,113 @@
         </div>
 
         <div class="dash-card">
-          {% if appointments %}
-          <div class="table-responsive">
-            <table class="dash-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Patient</th>
-                  <th>Date</th>
-                  <th>Time</th>
-                  <th>Queue</th>
-                  <th>Status</th>
-                  <th>Payment</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for appt in appointments %}
-                <tr>
-                  <td data-label="#">#{{ appt.get_doctor_appointment_number }}</td>
-                  <td data-label="Patient"><span class="td-name">{{ appt.patient.user.get_full_name }}</span></td>
-                  <td data-label="Date" class="td-meta">{{ appt.date }}</td>
-                  <td data-label="Time" class="td-meta">{{ appt.availability.start_time }} – {{ appt.availability.end_time }}</td>
-                  <td data-label="Queue">{% if appt.queue_number %}<span class="bs-queue">Q#{{ appt.queue_number }}</span>{% else %}<span class="td-meta">—</span>{% endif %}</td>
-                  <td data-label="Status">
-                    {% if appt.status == 'pending' %}<span class="bs bs-pending">Pending</span>
-                    {% elif appt.status == 'confirmed' %}<span class="bs bs-confirmed">Confirmed</span>
-                    {% elif appt.status == 'in_progress' %}<span class="bs bs-progress">In Progress</span>
-                    {% elif appt.status == 'done' %}<span class="bs bs-done">Done</span>
-                    {% elif appt.status == 'cancelled' %}<span class="bs bs-cancelled">Cancelled</span>
-                    {% endif %}
-                  </td>
-                  <td data-label="Payment">{% if appt.payment_status == 'paid' %}<span class="bs bs-paid">Paid</span>{% else %}<span class="bs bs-unpaid">Unpaid</span>{% endif %}</td>
-                  <td data-label="Action"><a href="{% url 'doctor_appointment_detail' appt.pk %}" class="btn-mini"><i class="bi bi-eye"></i></a></td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+          <div class="dash-card-header">
+            <span><i class="bi bi-door-open hi"></i>Walk-in Appointments</span>
           </div>
-          {% else %}
-          <div class="dash-empty"><i class="bi bi-journal-x"></i><p>No appointments found.</p></div>
-          {% endif %}
+          <div class="dash-card-body" style="padding:0;">
+            {% if walkin_appointments %}
+            <div class="table-responsive">
+              <table class="dash-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Patient</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Queue</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for appt in walkin_appointments %}
+                  <tr>
+                    <td data-label="#">#{{ appt.get_doctor_appointment_number }}</td>
+                    <td data-label="Patient"><span class="td-name">{{ appt.patient.user.get_full_name }}</span></td>
+                    <td data-label="Date" class="td-meta">{{ appt.date }}</td>
+                    <td data-label="Time" class="td-meta">
+                      {% if appt.appointment_time %}
+                        {{ appt.appointment_time|time:"H:i" }}
+                      {% else %}
+                        {{ appt.availability.start_time }} – {{ appt.availability.end_time }}
+                      {% endif %}
+                    </td>
+                    <td data-label="Queue">{% if appt.queue_number %}<span class="bs-queue">Q#{{ appt.queue_number }}</span>{% else %}<span class="td-meta">—</span>{% endif %}</td>
+                    <td data-label="Status">
+                      {% if appt.status == 'pending' %}<span class="bs bs-pending">Pending</span>
+                      {% elif appt.status == 'confirmed' %}<span class="bs bs-confirmed">Confirmed</span>
+                      {% elif appt.status == 'in_progress' %}<span class="bs bs-progress">In Progress</span>
+                      {% elif appt.status == 'done' %}<span class="bs bs-done">Done</span>
+                      {% elif appt.status == 'cancelled' %}<span class="bs bs-cancelled">Cancelled</span>
+                      {% endif %}
+                    </td>
+                    <td data-label="Payment">{% if appt.payment_status == 'paid' %}<span class="bs bs-paid">Paid</span>{% else %}<span class="bs bs-unpaid">Unpaid</span>{% endif %}</td>
+                    <td data-label="Action"><a href="{% url 'doctor_appointment_detail' appt.pk %}" class="btn-mini"><i class="bi bi-eye"></i></a></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <div class="dash-empty"><i class="bi bi-journal-x"></i><p>No walk-in appointments found.</p></div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <span><i class="bi bi-camera-video hi"></i>Online Appointments</span>
+          </div>
+          <div class="dash-card-body" style="padding:0;">
+            {% if online_appointments %}
+            <div class="table-responsive">
+              <table class="dash-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Patient</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Queue</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for appt in online_appointments %}
+                  <tr>
+                    <td data-label="#">#{{ appt.get_doctor_appointment_number }}</td>
+                    <td data-label="Patient"><span class="td-name">{{ appt.patient.user.get_full_name }}</span></td>
+                    <td data-label="Date" class="td-meta">{{ appt.date }}</td>
+                    <td data-label="Time" class="td-meta">
+                      {% if appt.appointment_time %}
+                        {{ appt.appointment_time|time:"H:i" }}
+                      {% else %}
+                        {{ appt.availability.start_time }} – {{ appt.availability.end_time }}
+                      {% endif %}
+                    </td>
+                    <td data-label="Queue">{% if appt.queue_number %}<span class="bs-queue">Q#{{ appt.queue_number }}</span>{% else %}<span class="td-meta">—</span>{% endif %}</td>
+                    <td data-label="Status">
+                      {% if appt.status == 'pending' %}<span class="bs bs-pending">Pending</span>
+                      {% elif appt.status == 'confirmed' %}<span class="bs bs-confirmed">Confirmed</span>
+                      {% elif appt.status == 'in_progress' %}<span class="bs bs-progress">In Progress</span>
+                      {% elif appt.status == 'done' %}<span class="bs bs-done">Done</span>
+                      {% elif appt.status == 'cancelled' %}<span class="bs bs-cancelled">Cancelled</span>
+                      {% endif %}
+                    </td>
+                    <td data-label="Payment">{% if appt.payment_status == 'paid' %}<span class="bs bs-paid">Paid</span>{% else %}<span class="bs bs-unpaid">Unpaid</span>{% endif %}</td>
+                    <td data-label="Action"><a href="{% url 'doctor_appointment_detail' appt.pk %}" class="btn-mini"><i class="bi bi-eye"></i></a></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <div class="dash-empty"><i class="bi bi-journal-x"></i><p>No online appointments found.</p></div>
+            {% endif %}
+          </div>
         </div>
       </div>
     </div>

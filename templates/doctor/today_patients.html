@@ -28,37 +28,93 @@
         </div>
 
         <div class="dash-card">
-          {% if appointments %}
-          <div class="table-responsive">
-            <table class="dash-table">
-              <thead><tr><th>Queue</th><th>Patient</th><th>Location</th><th>Time</th><th>Status</th><th>Payment</th><th>Action</th></tr></thead>
-              <tbody>
-                {% for appt in appointments %}
-                <tr class="{% if appt.status == 'in_progress' %}row-progress{% elif appt.status == 'done' %}row-done{% endif %}">
-                  <td>{% if appt.queue_number %}<span class="bs-queue">Q#{{ appt.queue_number }}</span>{% else %}<span class="td-meta">—</span>{% endif %}</td>
-                  <td><span class="td-name">{{ appt.patient.user.get_full_name }}</span></td>
-                  <td class="td-meta">
-                    {% if appt.availability.hospital %}{{ appt.availability.hospital.name }}
-                    {% elif appt.doctor.hospital %}{{ appt.doctor.hospital.name }}
-                    {% else %}—{% endif %}
-                  </td>
-                  <td class="td-meta">{{ appt.availability.start_time }} – {{ appt.availability.end_time }}</td>
-                  <td>
-                    {% if appt.status == 'confirmed' %}<span class="bs bs-confirmed">Confirmed</span>
-                    {% elif appt.status == 'in_progress' %}<span class="bs bs-progress"><i class="bi bi-activity me-1"></i>In Progress</span>
-                    {% elif appt.status == 'done' %}<span class="bs bs-done">Done</span>
-                    {% endif %}
-                  </td>
-                  <td>{% if appt.payment_status == 'paid' %}<span class="bs bs-paid">Paid</span>{% else %}<span class="bs bs-unpaid">Unpaid</span>{% endif %}</td>
-                  <td><a href="{% url 'doctor_appointment_detail' appt.pk %}" class="btn-mini"><i class="bi bi-eye"></i></a></td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+          <div class="dash-card-header">
+            <span><i class="bi bi-door-open hi"></i>Walk-in Patients</span>
           </div>
-          {% else %}
-          <div class="dash-empty"><i class="bi bi-people"></i><p>No patients scheduled for today.</p></div>
-          {% endif %}
+          <div class="dash-card-body" style="padding:0;">
+            {% if walkin_appointments %}
+            <div class="table-responsive">
+              <table class="dash-table">
+                <thead><tr><th>Queue</th><th>Patient</th><th>Location</th><th>Time</th><th>Status</th><th>Payment</th><th>Action</th></tr></thead>
+                <tbody>
+                  {% for appt in walkin_appointments %}
+                  <tr class="{% if appt.status == 'in_progress' %}row-progress{% elif appt.status == 'done' %}row-done{% endif %}">
+                    <td>{% if appt.queue_number %}<span class="bs-queue">Q#{{ appt.queue_number }}</span>{% else %}<span class="td-meta">—</span>{% endif %}</td>
+                    <td><span class="td-name">{{ appt.patient.user.get_full_name }}</span></td>
+                    <td class="td-meta">
+                      {% if appt.availability.hospital %}{{ appt.availability.hospital.name }}
+                      {% elif appt.doctor.hospital %}{{ appt.doctor.hospital.name }}
+                      {% else %}—{% endif %}
+                    </td>
+                    <td class="td-meta">
+                      {% if appt.appointment_time %}
+                        {{ appt.appointment_time|time:"H:i" }}
+                      {% else %}
+                        {{ appt.availability.start_time }} – {{ appt.availability.end_time }}
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if appt.status == 'confirmed' %}<span class="bs bs-confirmed">Confirmed</span>
+                      {% elif appt.status == 'in_progress' %}<span class="bs bs-progress"><i class="bi bi-activity me-1"></i>In Progress</span>
+                      {% elif appt.status == 'done' %}<span class="bs bs-done">Done</span>
+                      {% endif %}
+                    </td>
+                    <td>{% if appt.payment_status == 'paid' %}<span class="bs bs-paid">Paid</span>{% else %}<span class="bs bs-unpaid">Unpaid</span>{% endif %}</td>
+                    <td><a href="{% url 'doctor_appointment_detail' appt.pk %}" class="btn-mini"><i class="bi bi-eye"></i></a></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <div class="dash-empty"><i class="bi bi-people"></i><p>No walk-in patients scheduled for today.</p></div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <span><i class="bi bi-camera-video hi"></i>Online Patients</span>
+          </div>
+          <div class="dash-card-body" style="padding:0;">
+            {% if online_appointments %}
+            <div class="table-responsive">
+              <table class="dash-table">
+                <thead><tr><th>Queue</th><th>Patient</th><th>Location</th><th>Time</th><th>Status</th><th>Payment</th><th>Action</th></tr></thead>
+                <tbody>
+                  {% for appt in online_appointments %}
+                  <tr class="{% if appt.status == 'in_progress' %}row-progress{% elif appt.status == 'done' %}row-done{% endif %}">
+                    <td>{% if appt.queue_number %}<span class="bs-queue">Q#{{ appt.queue_number }}</span>{% else %}<span class="td-meta">—</span>{% endif %}</td>
+                    <td><span class="td-name">{{ appt.patient.user.get_full_name }}</span></td>
+                    <td class="td-meta">
+                      {% if appt.availability.hospital %}{{ appt.availability.hospital.name }}
+                      {% elif appt.doctor.hospital %}{{ appt.doctor.hospital.name }}
+                      {% else %}—{% endif %}
+                    </td>
+                    <td class="td-meta">
+                      {% if appt.appointment_time %}
+                        {{ appt.appointment_time|time:"H:i" }}
+                      {% else %}
+                        {{ appt.availability.start_time }} – {{ appt.availability.end_time }}
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if appt.status == 'confirmed' %}<span class="bs bs-confirmed">Confirmed</span>
+                      {% elif appt.status == 'in_progress' %}<span class="bs bs-progress"><i class="bi bi-activity me-1"></i>In Progress</span>
+                      {% elif appt.status == 'done' %}<span class="bs bs-done">Done</span>
+                      {% endif %}
+                    </td>
+                    <td>{% if appt.payment_status == 'paid' %}<span class="bs bs-paid">Paid</span>{% else %}<span class="bs bs-unpaid">Unpaid</span>{% endif %}</td>
+                    <td><a href="{% url 'doctor_appointment_detail' appt.pk %}" class="btn-mini"><i class="bi bi-eye"></i></a></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <div class="dash-empty"><i class="bi bi-people"></i><p>No online patients scheduled for today.</p></div>
+            {% endif %}
+          </div>
         </div>
       </div>
     </div>

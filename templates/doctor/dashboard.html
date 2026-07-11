@@ -147,27 +147,31 @@
           </div>
         </div>
 
-        <!-- Today's Appointments -->
+        <!-- Today's Walk-in Appointments -->
         <div class="dash-card">
           <div class="dash-card-header">
-            <span><i class="bi bi-calendar-day hi"></i>Today's Appointments ({{ today }})</span>
+            <span><i class="bi bi-door-open hi"></i>Walk-in Appointments ({{ today }})</span>
             <a href="{% url 'doctor_today_patients' %}" class="btn-mini">View All</a>
           </div>
           <div class="dash-card-body" style="padding:0;">
-            {% if todays_appointments %}
+            {% if todays_walkin_appointments %}
             <div class="table-responsive">
               <table class="dash-table">
                 <thead>
                   <tr><th>Queue</th><th>Patient</th><th>Time</th><th>Status</th><th>Action</th></tr>
                 </thead>
                 <tbody>
-                  {% for appt in todays_appointments %}
+                  {% for appt in todays_walkin_appointments %}
                   <tr>
-                    <td>
-                      {% if appt.queue_number %}<span class="bs-queue">Q#{{ appt.queue_number }}</span>{% else %}—{% endif %}
-                    </td>
+                    <td>{% if appt.queue_number %}<span class="bs-queue">Q#{{ appt.queue_number }}</span>{% else %}—{% endif %}</td>
                     <td><span class="td-name">{{ appt.patient.user.get_full_name }}</span></td>
-                    <td>{{ appt.availability.start_time }} – {{ appt.availability.end_time }}</td>
+                    <td>
+                      {% if appt.appointment_time %}
+                        {{ appt.appointment_time|time:"H:i" }}
+                      {% else %}
+                        {{ appt.availability.start_time }} – {{ appt.availability.end_time }}
+                      {% endif %}
+                    </td>
                     <td>
                       {% if appt.status == 'pending' %}<span class="bs bs-pending">Pending</span>
                       {% elif appt.status == 'confirmed' %}<span class="bs bs-confirmed">Confirmed</span>
@@ -182,16 +186,60 @@
               </table>
             </div>
             {% else %}
-            <div class="dash-empty"><i class="bi bi-calendar-x"></i><p>No appointments for today.</p></div>
+            <div class="dash-empty"><i class="bi bi-calendar-x"></i><p>No walk-in appointments for today.</p></div>
             {% endif %}
           </div>
         </div>
 
-        <!-- Pending Appointments -->
-        {% if pending_appointments %}
+        <!-- Today's Online Appointments -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <span><i class="bi bi-camera-video hi"></i>Online Appointments ({{ today }})</span>
+            <a href="{% url 'doctor_today_patients' %}" class="btn-mini">View All</a>
+          </div>
+          <div class="dash-card-body" style="padding:0;">
+            {% if todays_online_appointments %}
+            <div class="table-responsive">
+              <table class="dash-table">
+                <thead>
+                  <tr><th>Queue</th><th>Patient</th><th>Time</th><th>Status</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                  {% for appt in todays_online_appointments %}
+                  <tr>
+                    <td>{% if appt.queue_number %}<span class="bs-queue">Q#{{ appt.queue_number }}</span>{% else %}—{% endif %}</td>
+                    <td><span class="td-name">{{ appt.patient.user.get_full_name }}</span></td>
+                    <td>
+                      {% if appt.appointment_time %}
+                        {{ appt.appointment_time|time:"H:i" }}
+                      {% else %}
+                        {{ appt.availability.start_time }} – {{ appt.availability.end_time }}
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if appt.status == 'pending' %}<span class="bs bs-pending">Pending</span>
+                      {% elif appt.status == 'confirmed' %}<span class="bs bs-confirmed">Confirmed</span>
+                      {% elif appt.status == 'in_progress' %}<span class="bs bs-progress">In Progress</span>
+                      {% elif appt.status == 'done' %}<span class="bs bs-done">Done</span>
+                      {% elif appt.status == 'cancelled' %}<span class="bs bs-cancelled">Cancelled</span>{% endif %}
+                    </td>
+                    <td><a href="{% url 'doctor_appointment_detail' appt.pk %}" class="btn-mini"><i class="bi bi-eye"></i></a></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <div class="dash-empty"><i class="bi bi-calendar-x"></i><p>No online appointments for today.</p></div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Pending Walk-in Appointments -->
+        {% if pending_walkin_appointments %}
         <div class="dash-card">
           <div class="dash-card-header" style="border-left:4px solid #f59e0b;">
-            <span><i class="bi bi-exclamation-triangle hi" style="color:#d97706;"></i>Pending Appointments</span>
+            <span><i class="bi bi-door-open hi" style="color:#d97706;"></i>Pending Walk-in Appointments</span>
           </div>
           <div class="dash-card-body" style="padding:0;">
             <div class="table-responsive">
@@ -200,11 +248,51 @@
                   <tr><th>Patient</th><th>Date</th><th>Time</th><th>Action</th></tr>
                 </thead>
                 <tbody>
-                  {% for appt in pending_appointments %}
+                  {% for appt in pending_walkin_appointments %}
                   <tr>
                     <td><span class="td-name">{{ appt.patient.user.get_full_name }}</span></td>
                     <td>{{ appt.date }}</td>
-                    <td>{{ appt.availability.start_time }} – {{ appt.availability.end_time }}</td>
+                    <td>
+                      {% if appt.appointment_time %}
+                        {{ appt.appointment_time|time:"H:i" }}
+                      {% else %}
+                        {{ appt.availability.start_time }} – {{ appt.availability.end_time }}
+                      {% endif %}
+                    </td>
+                    <td><a href="{% url 'doctor_appointment_detail' appt.pk %}" class="btn-mini-amber"><i class="bi bi-check-lg"></i> Review</a></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Pending Online Appointments -->
+        {% if pending_online_appointments %}
+        <div class="dash-card">
+          <div class="dash-card-header" style="border-left:4px solid #f59e0b;">
+            <span><i class="bi bi-camera-video hi" style="color:#d97706;"></i>Pending Online Appointments</span>
+          </div>
+          <div class="dash-card-body" style="padding:0;">
+            <div class="table-responsive">
+              <table class="dash-table">
+                <thead>
+                  <tr><th>Patient</th><th>Date</th><th>Time</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                  {% for appt in pending_online_appointments %}
+                  <tr>
+                    <td><span class="td-name">{{ appt.patient.user.get_full_name }}</span></td>
+                    <td>{{ appt.date }}</td>
+                    <td>
+                      {% if appt.appointment_time %}
+                        {{ appt.appointment_time|time:"H:i" }}
+                      {% else %}
+                        {{ appt.availability.start_time }} – {{ appt.availability.end_time }}
+                      {% endif %}
+                    </td>
                     <td><a href="{% url 'doctor_appointment_detail' appt.pk %}" class="btn-mini-amber"><i class="bi bi-check-lg"></i> Review</a></td>
                   </tr>
                   {% endfor %}

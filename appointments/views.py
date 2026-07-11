@@ -520,8 +520,21 @@ class DoctorDashboardView(LoginRequiredMixin, View):
             doctor=doctor, date=today,
         ).order_by('queue_number')
 
+        todays_walkin_appointments = todays_appointments.filter(
+            is_online_consultation=False,
+        )
+        todays_online_appointments = todays_appointments.filter(
+            is_online_consultation=True,
+        )
+
         pending_appointments = Appointment.objects.filter(
             doctor=doctor, status='pending',
+        )
+        pending_walkin_appointments = pending_appointments.filter(
+            is_online_consultation=False,
+        )
+        pending_online_appointments = pending_appointments.filter(
+            is_online_consultation=True,
         )
 
         upcoming_availability = Availability.objects.filter(
@@ -535,7 +548,11 @@ class DoctorDashboardView(LoginRequiredMixin, View):
         context = {
             'doctor': doctor,
             'todays_appointments': todays_appointments,
+            'todays_walkin_appointments': todays_walkin_appointments,
+            'todays_online_appointments': todays_online_appointments,
             'pending_appointments': pending_appointments,
+            'pending_walkin_appointments': pending_walkin_appointments,
+            'pending_online_appointments': pending_online_appointments,
             'upcoming_availability': upcoming_availability,
             'total_patients_today': total_patients_today,
             'total_pending': pending_appointments.count(),
@@ -676,8 +693,13 @@ class DoctorAppointmentListView(LoginRequiredMixin, View):
         if date_filter:
             appointments = appointments.filter(date=date_filter)
 
+        walkin_appointments = appointments.filter(is_online_consultation=False)
+        online_appointments = appointments.filter(is_online_consultation=True)
+
         return render(request, self.template_name, {
             'appointments': appointments,
+            'walkin_appointments': walkin_appointments,
+            'online_appointments': online_appointments,
             'doctor': doctor,
             'status_filter': status_filter,
             'date_filter': date_filter,
@@ -780,8 +802,14 @@ class DoctorTodayPatientsView(LoginRequiredMixin, View):
             doctor=doctor, date=today,
             status__in=['confirmed', 'in_progress', 'done'],
         ).order_by('queue_number')
+        walkin_appointments = appointments.filter(is_online_consultation=False)
+        online_appointments = appointments.filter(is_online_consultation=True)
         return render(request, self.template_name, {
-            'appointments': appointments, 'doctor': doctor, 'today': today,
+            'appointments': appointments,
+            'walkin_appointments': walkin_appointments,
+            'online_appointments': online_appointments,
+            'doctor': doctor,
+            'today': today,
         })
 
 
@@ -1056,7 +1084,7 @@ class BookAppointmentView(LoginRequiredMixin, View):
 
     def _get_available_times(self, availability):
         """
-        Generate minute-by-minute time slots between availability start and end time.
+        Generate 20-minute time slots between availability start and end time.
         Returns a list of time objects.
         """
         from datetime import datetime, timedelta
@@ -1069,7 +1097,7 @@ class BookAppointmentView(LoginRequiredMixin, View):
         
         while current_dt < end_dt:
             available_times.append(current_dt.time())
-            current_dt += timedelta(minutes=1)
+            current_dt += timedelta(minutes=20)
         
         return available_times
 
@@ -1179,9 +1207,25 @@ class BookAppointmentView(LoginRequiredMixin, View):
                 })
             
             # Check if appointment_time is within availability window
+            available_times = self._get_available_times(availability)
+            if appointment_time not in available_times:
+                messages.error(
+                    request,
+                    'Selected time is not a valid 20-minute slot. Please choose one of the available times.'
+                )
+                free_times = [t for t in available_times if t not in booked_times]
+                return render(request, self.template_name, {
+                    'form': form, 
+                    'availability': availability,
+                    'available_times': free_times,
+                    'booked_times': sorted(list(booked_times)),
+                    'total_slots': len(available_times),
+                    'booked_count': len(booked_times),
+                    'free_count': len(free_times),
+                })
+
             if not (availability.start_time <= appointment_time < availability.end_time):
                 messages.error(request, 'Selected time is outside available hours.')
-                available_times = self._get_available_times(availability)
                 free_times = [t for t in available_times if t not in booked_times]
                 return render(request, self.template_name, {
                     'form': form, 

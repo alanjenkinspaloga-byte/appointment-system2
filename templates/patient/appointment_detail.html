@@ -36,7 +36,13 @@
                   <tr><th>Address</th><td>{{ appointment.doctor.hospital.address }}</td></tr>
                   {% endif %}
                   <tr><th>Date</th><td>{{ appointment.date }}</td></tr>
-                  <tr><th>Time</th><td>{{ appointment.availability.start_time }} – {{ appointment.availability.end_time }}</td></tr>
+                  <tr><th>Time</th><td>
+                    {% if appointment.appointment_time %}
+                      {{ appointment.appointment_time|time:"H:i" }}
+                    {% else %}
+                      {{ appointment.availability.start_time }} – {{ appointment.availability.end_time }}
+                    {% endif %}
+                  </td></tr>
                   <tr><th>Queue</th><td>
                     {% if appointment.queue_number %}
                       <span class="bs-queue">Q#{{ appointment.queue_number }}</span>
