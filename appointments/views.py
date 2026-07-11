@@ -1197,9 +1197,11 @@ class BookAppointmentView(LoginRequiredMixin, View):
         Returns a list of time objects.
         """
         from datetime import datetime, timedelta
-        
-        start_dt = datetime.combine(date.today(), availability.start_time)
-        end_dt = datetime.combine(date.today(), availability.end_time)
+
+        # Use the availability's own date (not today's date) to generate slots.
+        slot_date = availability.date if availability and availability.date else date.today()
+        start_dt = datetime.combine(slot_date, availability.start_time)
+        end_dt = datetime.combine(slot_date, availability.end_time)
         
         available_times = []
         current_dt = start_dt
@@ -1265,6 +1267,13 @@ class BookAppointmentView(LoginRequiredMixin, View):
 
         if availability.accepting_status == 'paused':
             messages.warning(request, 'This slot is currently paused.')
+            return redirect('doctor_schedule', doctor_id=availability.doctor.pk)
+
+        # Prevent booking for a slot that has already ended when the slot date is today.
+        from django.utils import timezone
+        now = timezone.localtime(timezone.now())
+        if availability.date == date.today() and now.time() >= availability.end_time:
+            messages.error(request, 'This availability slot has already ended and cannot be booked.')
             return redirect('doctor_schedule', doctor_id=availability.doctor.pk)
 
         form = AppointmentBookingForm(request.POST)
