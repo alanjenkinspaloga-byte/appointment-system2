@@ -482,23 +482,28 @@ class Appointment(models.Model):
         patient_name = f"Patient#{self.patient_id or '—'}"
         doctor_name = f"Doctor#{self.doctor_id or '—'}"
 
-        try:
-            patient_user = getattr(self.patient, 'user', None)
-            if patient_user:
-                safe_name = _safe_full_name(patient_user) or getattr(patient_user, 'username', None)
-                if safe_name:
-                    patient_name = safe_name
-        except Exception:
-            patient_name = f"Patient#{self.patient_id or '—'}"
+        # Avoid loading related objects inside __str__ during exception formatting.
+        patient_cache = getattr(self, '_patient_cache', None)
+        if patient_cache is not None:
+            try:
+                patient_user = getattr(patient_cache, 'user', None)
+                if patient_user:
+                    safe_name = _safe_full_name(patient_user) or getattr(patient_user, 'username', None)
+                    if safe_name:
+                        patient_name = safe_name
+            except Exception:
+                pass
 
-        try:
-            doctor_user = getattr(self.doctor, 'user', None)
-            if doctor_user:
-                safe_name = _safe_full_name(doctor_user) or getattr(doctor_user, 'username', None)
-                if safe_name:
-                    doctor_name = safe_name
-        except Exception:
-            doctor_name = f"Doctor#{self.doctor_id or '—'}"
+        doctor_cache = getattr(self, '_doctor_cache', None)
+        if doctor_cache is not None:
+            try:
+                doctor_user = getattr(doctor_cache, 'user', None)
+                if doctor_user:
+                    safe_name = _safe_full_name(doctor_user) or getattr(doctor_user, 'username', None)
+                    if safe_name:
+                        doctor_name = safe_name
+            except Exception:
+                pass
 
         try:
             status_display = self.get_status_display()
