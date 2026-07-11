@@ -615,55 +615,21 @@ class DoctorDashboardView(LoginRequiredMixin, View):
             (returning_patients_count / len(week_patient_ids) * 100), 1
         ) if week_patient_ids else 0
 
-        gender_distribution = {
-            'male': 0,
-            'female': 0,
-            'other': 0,
-            'unknown': 0,
-        }
-        for item in week_appointments.values('patient__gender').annotate(
-            count=Count('patient', distinct=True)
-        ):
-            gender = item['patient__gender'] or 'unknown'
-            gender_distribution[gender] = item['count']
+        weekly_count = week_appointments.count() or 1
+        walkin_pct = round(walkin_count / weekly_count * 100, 1)
+        online_pct = round(online_count / weekly_count * 100, 1)
 
-        age_groups = {
-            '0-17': 0,
-            '18-35': 0,
-            '36-55': 0,
-            '56+': 0,
-            'unknown': 0,
-        }
-        patients_in_week = Patient.objects.filter(
-            appointments__doctor=doctor,
-            appointments__date__gte=week_start,
-            appointments__date__lte=today,
-        ).distinct()
-        for patient in patients_in_week:
-            if patient.date_of_birth:
-                age = today.year - patient.date_of_birth.year - (
-                    (today.month, today.day) <
-                    (patient.date_of_birth.month, patient.date_of_birth.day)
-                )
-                if age < 18:
-                    age_groups['0-17'] += 1
-                elif age <= 35:
-                    age_groups['18-35'] += 1
-                elif age <= 55:
-                    age_groups['36-55'] += 1
-                else:
-                    age_groups['56+'] += 1
-            else:
-                age_groups['unknown'] += 1
+        patient_retention_total = new_patients_count + returning_patients_count or 1
+        new_patients_pct = round(new_patients_count / patient_retention_total * 100, 1)
+        returning_patients_pct = round(returning_patients_count / patient_retention_total * 100, 1)
 
-        top_reasons = list(
-            week_appointments
-            .exclude(reason__isnull=True)
-            .exclude(reason__exact='')
-            .values('reason')
-            .annotate(count=Count('id'))
-            .order_by('-count')[:5]
-        )
+        appointment_status_total = completed_count + cancelled_count or 1
+        completed_pct = round(completed_count / appointment_status_total * 100, 1)
+        cancelled_pct = round(cancelled_count / appointment_status_total * 100, 1)
+
+        no_show_pct = round(min(no_show_count / weekly_count * 100, 100), 1)
+        overtime_pct = round(min(overtime_appointments / weekly_count * 100, 100), 1)
+        idle_pct = min(total_idle_minutes, 100)
 
         context = {
             'doctor': doctor,
@@ -692,13 +658,14 @@ class DoctorDashboardView(LoginRequiredMixin, View):
             'new_patients_count': new_patients_count,
             'returning_patients_count': returning_patients_count,
             'follow_up_rate': follow_up_rate,
-            'gender_distribution': gender_distribution,
-            'age_groups': age_groups,
-            'age_0_17': age_groups.get('0-17', 0),
-            'age_18_35': age_groups.get('18-35', 0),
-            'age_36_55': age_groups.get('36-55', 0),
-            'age_56_plus': age_groups.get('56+', 0),
-            'top_reasons': top_reasons,
+            'walkin_pct': walkin_pct,
+            'online_pct': online_pct,
+            'new_patients_pct': new_patients_pct,
+            'returning_patients_pct': returning_patients_pct,
+            'completed_pct': completed_pct,
+            'cancelled_pct': cancelled_pct,
+            'overtime_pct': overtime_pct,
+            'no_show_pct': no_show_pct,
         }
         return render(request, self.template_name, context)
 
