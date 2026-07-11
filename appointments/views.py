@@ -694,6 +694,10 @@ class DoctorDashboardView(LoginRequiredMixin, View):
             'follow_up_rate': follow_up_rate,
             'gender_distribution': gender_distribution,
             'age_groups': age_groups,
+            'age_0_17': age_groups.get('0-17', 0),
+            'age_18_35': age_groups.get('18-35', 0),
+            'age_36_55': age_groups.get('36-55', 0),
+            'age_56_plus': age_groups.get('56+', 0),
             'top_reasons': top_reasons,
         }
         return render(request, self.template_name, context)
