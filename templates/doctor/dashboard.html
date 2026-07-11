@@ -118,6 +118,60 @@
               </div>
             </div>
           </div>
+
+          <!-- Chart.js CDN and initialization -->
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          <script>
+            (function(){
+              // Operational: Idle / Overtime / No-shows (percent-based)
+              const opCtx = document.getElementById('chartOperational');
+              if(opCtx){
+                new Chart(opCtx, {
+                  type: 'doughnut',
+                  data: {
+                    labels: ['Idle (min scaled)','Overtime (%)','No-shows (%)'],
+                    datasets: [{
+                      data: [{{ total_idle_minutes|default:0 }}, {{ overtime_pct|default:0 }}, {{ no_show_pct|default:0 }}],
+                      backgroundColor: ['#60a5fa','#6366f1','#f59e0b']
+                    }]
+                  },
+                  options: {responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}
+                });
+              }
+
+              // Patient flow: Walk-ins vs Online
+              const pfCtx = document.getElementById('chartPatientFlow');
+              if(pfCtx){
+                new Chart(pfCtx, {
+                  type: 'doughnut',
+                  data: {
+                    labels: ['Walk-ins','Online'],
+                    datasets: [{
+                      data: [{{ walkin_count|default:0 }}, {{ online_count|default:0 }}],
+                      backgroundColor: ['#2563eb','#06b6d4']
+                    }]
+                  },
+                  options: {responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}
+                });
+              }
+
+              // Performance: Completed vs Cancelled
+              const perfCtx = document.getElementById('chartPerformance');
+              if(perfCtx){
+                new Chart(perfCtx, {
+                  type: 'doughnut',
+                  data: {
+                    labels: ['Completed','Cancelled'],
+                    datasets: [{
+                      data: [{{ completed_count|default:0 }}, {{ cancelled_count|default:0 }}],
+                      backgroundColor: ['#10b981','#f97316']
+                    }]
+                  },
+                  options: {responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}
+                });
+              }
+            })();
+          </script>
           <div class="col-sm-6 col-xl-3">
             <div class="stat-card">
               <div class="stat-icon amber"><i class="bi bi-clock-history"></i></div>
@@ -272,72 +326,19 @@
               <div class="col-md-4">
                 <div class="graph-card">
                   <div class="graph-card-title">Operational efficiency</div>
-                  <div class="graph-row">
-                    <div class="graph-stat">Peak hours</div>
-                    <div class="graph-value">{% for item in peak_hours %}{{ item.hour }}:00{% if not forloop.last %}, {% endif %}{% empty %}None{% endfor %}</div>
-                  </div>
-                  <div class="graph-row">
-                    <div class="graph-stat">Idle time</div>
-                    <div class="graph-value">{{ total_idle_minutes }} min</div>
-                  </div>
-                  <div class="graph-bar-track">
-                    <div class="graph-bar-segment blue" style="width:{{ total_idle_minutes|default:0|floatformat:0 }}%"></div>
-                  </div>
-                  <div class="graph-row mt-3">
-                    <div class="graph-stat">Overtime appts</div>
-                    <div class="graph-value">{{ overtime_count }}</div>
-                  </div>
-                  <div class="graph-bar-track">
-                    <div class="graph-bar-segment indigo" style="width:{{ overtime_pct }}%"></div>
-                  </div>
-                  <div class="graph-row mt-3">
-                    <div class="graph-stat">No-shows</div>
-                    <div class="graph-value">{{ no_show_count }}</div>
-                  </div>
-                  <div class="graph-bar-track">
-                    <div class="graph-bar-segment amber" style="width:{{ no_show_pct }}%"></div>
-                  </div>
+                  <canvas id="chartOperational" width="300" height="200" aria-label="Operational efficiency chart"></canvas>
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="graph-card">
                   <div class="graph-card-title">Patient flow</div>
-                  <div class="graph-row">
-                    <div class="graph-stat">Walk-ins vs online</div>
-                    <div class="graph-value">{{ walkin_count }} / {{ online_count }}</div>
-                  </div>
-                  <div class="graph-bar-track">
-                    <div class="graph-bar-segment blue" style="width:{{ walkin_pct }}%"></div>
-                    <div class="graph-bar-segment green" style="width:{{ online_pct }}%"></div>
-                  </div>
-                  <div class="graph-row mt-3">
-                    <div class="graph-stat">New vs returning</div>
-                    <div class="graph-value">{{ new_patients_count }} / {{ returning_patients_count }}</div>
-                  </div>
-                  <div class="graph-bar-track">
-                    <div class="graph-bar-segment indigo" style="width:{{ new_patients_pct }}%"></div>
-                    <div class="graph-bar-segment amber" style="width:{{ returning_patients_pct }}%"></div>
-                  </div>
+                  <canvas id="chartPatientFlow" width="300" height="200" aria-label="Patient flow chart"></canvas>
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="graph-card">
                   <div class="graph-card-title">Performance indicators</div>
-                  <div class="graph-row">
-                    <div class="graph-stat">Completed vs cancelled</div>
-                    <div class="graph-value">{{ completed_count }} / {{ cancelled_count }}</div>
-                  </div>
-                  <div class="graph-bar-track">
-                    <div class="graph-bar-segment blue" style="width:{{ completed_pct }}%"></div>
-                    <div class="graph-bar-segment amber" style="width:{{ cancelled_pct }}%"></div>
-                  </div>
-                  <div class="graph-row mt-3">
-                    <div class="graph-stat">Follow-up rate</div>
-                    <div class="graph-value">{{ follow_up_rate }}%</div>
-                  </div>
-                  <div class="graph-bar-track">
-                    <div class="graph-bar-segment green" style="width:{{ follow_up_rate }}%"></div>
-                  </div>
+                  <canvas id="chartPerformance" width="300" height="200" aria-label="Performance indicators chart"></canvas>
                 </div>
               </div>
             </div>
