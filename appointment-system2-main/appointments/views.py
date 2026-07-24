@@ -20,6 +20,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.sessions.models import Session
 from django.contrib import messages
 from django.views import View
 from django.utils import timezone
@@ -144,7 +145,21 @@ class LoginView(View):
                 password=form.cleaned_data['password'],
             )
             if user is not None:
+                profile = getattr(user, 'profile', None)
+                if profile and profile.current_session_key:
+                    if Session.objects.filter(session_key=profile.current_session_key).exists():
+                        form.add_error(None, 'This account is already logged in from another device.')
+                        return render(request, self.template_name, {'form': form})
+                    profile.current_session_key = None
+                    profile.save(update_fields=['current_session_key'])
+
                 login(request, user)
+                request.session.save()
+                profile = getattr(user, 'profile', None)
+                if profile:
+                    profile.current_session_key = request.session.session_key
+                    profile.save(update_fields=['current_session_key'])
+
                 messages.success(request, f'Welcome back, {user.first_name}!')
                 return redirect('dashboard')
         messages.error(request, 'Invalid username or password.')
@@ -153,6 +168,11 @@ class LoginView(View):
 
 class LogoutView(View):
     def get(self, request):
+        if request.user.is_authenticated:
+            profile = getattr(request.user, 'profile', None)
+            if profile and profile.current_session_key:
+                profile.current_session_key = None
+                profile.save(update_fields=['current_session_key'])
         logout(request)
         messages.info(request, 'You have been logged out.')
         return redirect('login')
