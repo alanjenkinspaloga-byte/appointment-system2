@@ -5,15 +5,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
-<<<<<<< HEAD
-from django.utils import timezone
 from .models import Profile, Appointment, Doctor, Notification
-import logging
-
-logger = logging.getLogger(__name__)
-=======
-from .models import Profile, Appointment, Doctor, Notification
->>>>>>> main
 
 
 @receiver(post_save, sender=User)
@@ -26,16 +18,7 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Appointment)
 def appointment_notification(sender, instance, created, **kwargs):
-<<<<<<< HEAD
-    """
-    Fire notifications whenever an appointment is created or its status changes.
-    Also schedules Celery tasks for timed email reminders.
-    """
-    from .tasks import send_appointment_reminder, send_next_in_queue_notification
-    
-=======
     """Fire notifications whenever an appointment is created or its status changes."""
->>>>>>> main
     patient_user = instance.patient.user
     doctor_user  = instance.doctor.user
     doctor_name  = f'Dr. {doctor_user.get_full_name() or doctor_user.username}'
@@ -68,67 +51,6 @@ def appointment_notification(sender, instance, created, **kwargs):
             # Send confirmation email
             try:
                 from .email_utils import send_online_appointment_confirmation_email, send_in_person_appointment_confirmation_email
-<<<<<<< HEAD
-                
-                if instance.is_online_consultation and instance.jitsi_meet_link:
-                    send_online_appointment_confirmation_email(instance)
-                    logger.info(f"Online appointment confirmation email sent for appointment {instance.id}")
-                else:
-                    send_in_person_appointment_confirmation_email(instance)
-                    logger.info(f"In-person appointment confirmation email sent for appointment {instance.id}")
-            except Exception as e:
-                logger.error(f"Error sending appointment confirmation email for appointment {instance.id}: {str(e)}")
-            
-            # ============================================================
-            # SCHEDULE REMINDER EMAIL TASK
-            # ============================================================
-            try:
-                reminder_datetime = instance.get_reminder_datetime()
-                
-                if reminder_datetime:
-                    now = timezone.now()
-                    
-                    if reminder_datetime > now:
-                        # Calculate countdown in seconds (how long to wait before running task)
-                        countdown = int((reminder_datetime - now).total_seconds())
-                        
-                        # Schedule the reminder task with apply_async
-                        task = send_appointment_reminder.apply_async(
-                            args=[instance.id],
-                            countdown=countdown,  # Run at specific time
-                            retry=True,
-                            retry_policy={
-                                'max_retries': 3,
-                                'interval_start': 60,  # 1 minute
-                                'interval_step': 60,   # 1 minute
-                                'interval_max': 300,   # 5 minutes
-                            }
-                        )
-                        
-                        # Store task ID for tracking
-                        instance.scheduled_task_id = task.id
-                        instance.save(update_fields=['scheduled_task_id'])
-                        
-                        logger.info(
-                            f"Scheduled reminder task {task.id} for appointment {instance.id} "
-                            f"at {reminder_datetime} (in {countdown} seconds)"
-                        )
-                    else:
-                        logger.warning(
-                            f"Reminder time {reminder_datetime} is in the past. "
-                            f"Skipping task scheduling for appointment {instance.id}"
-                        )
-                else:
-                    logger.warning(
-                        f"Could not calculate reminder datetime for appointment {instance.id}. "
-                        f"Skipping task scheduling."
-                    )
-            except Exception as e:
-                logger.error(
-                    f"Error scheduling reminder task for appointment {instance.id}: {str(e)}"
-                )
-                
-=======
                 import logging
                 email_logger = logging.getLogger(__name__)
                 
@@ -142,7 +64,6 @@ def appointment_notification(sender, instance, created, **kwargs):
                 import logging
                 email_logger = logging.getLogger(__name__)
                 email_logger.error(f"Error sending appointment confirmation email for appointment {instance.id}: {str(e)}")
->>>>>>> main
         elif status == 'cancelled':
             Notification.objects.create(
                 user=patient_user,
@@ -156,21 +77,6 @@ def appointment_notification(sender, instance, created, **kwargs):
                 title='Appointment Cancelled',
                 message=f'The appointment with {patient_name} on {appt_date} was cancelled.',
             )
-<<<<<<< HEAD
-            
-            # ============================================================
-            # CANCEL SCHEDULED REMINDER TASK
-            # ============================================================
-            try:
-                if instance.scheduled_task_id:
-                    from celery import current_app
-                    current_app.control.revoke(instance.scheduled_task_id, terminate=True)
-                    logger.info(f"Cancelled scheduled task {instance.scheduled_task_id} for appointment {instance.id}")
-            except Exception as e:
-                logger.error(f"Error cancelling scheduled task for appointment {instance.id}: {str(e)}")
-                
-=======
->>>>>>> main
         elif status == 'in_progress':
             # Notify the next patient in the queue to head to the clinic
             if instance.queue_number:
@@ -195,34 +101,6 @@ def appointment_notification(sender, instance, created, **kwargs):
                             f'You are Queue #{next_appt.queue_number} \u2014 please proceed to {loc} now!'
                         ),
                     )
-<<<<<<< HEAD
-                    
-                    # ============================================================
-                    # SCHEDULE "NEXT IN QUEUE" NOTIFICATION EMAIL
-                    # ============================================================
-                    try:
-                        task = send_next_in_queue_notification.apply_async(
-                            args=[next_appt.id],
-                            countdown=0,  # Send immediately
-                            retry=True,
-                            retry_policy={
-                                'max_retries': 3,
-                                'interval_start': 60,
-                                'interval_step': 60,
-                                'interval_max': 300,
-                            }
-                        )
-                        logger.info(
-                            f"Scheduled next-in-queue notification task {task.id} "
-                            f"for appointment {next_appt.id}"
-                        )
-                    except Exception as e:
-                        logger.error(
-                            f"Error scheduling next-in-queue notification for appointment {next_appt.id}: {str(e)}"
-                        )
-                        
-=======
->>>>>>> main
         elif status == 'done':
             Notification.objects.create(
                 user=patient_user,

@@ -29,14 +29,11 @@
             transition: box-shadow .3s, background .3s;
             font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
         }
-<<<<<<< HEAD
-=======
         #mainNav .container,
         #mainNav .container-fluid {
             padding-left: 1.1rem;
             padding-right: 1.1rem;
         }
->>>>>>> main
         #mainNav.nav-scrolled {
             background: rgba(6,14,31,.97);
             box-shadow: 0 4px 24px rgba(0,0,0,.35);
@@ -178,8 +175,6 @@
             font-family: 'Inter', system-ui, sans-serif;
         }
 
-<<<<<<< HEAD
-=======
         /* ══ MOBILE DASHBOARD MENU TOGGLE ══ */
         .dash-sidebar-shell {
             position: relative;
@@ -220,7 +215,6 @@
             }
         }
 
->>>>>>> main
         /* ══ OKIDOKI DASHBOARD DESIGN SYSTEM (shared across all panel pages) ══ */
         :root{--db:#2563eb;--di:#7c3aed;--dn:#0a1628;--dbg:#f0f5ff;}
         .dash-page{background:var(--dbg);min-height:calc(100vh - 72px);padding:2rem 0 3rem;}
@@ -370,13 +364,8 @@
     <!-- Navbar -->
     {% block navbar %}
     <nav class="navbar navbar-expand-lg" id="mainNav">
-<<<<<<< HEAD
-        <div class="container">
-            <a class="nav-brand navbar-brand" href="{% url 'home' %}">
-=======
         <div class="container-fluid px-3 px-lg-3">
             <a class="nav-brand navbar-brand ms-0" href="{% url 'home' %}">
->>>>>>> main
                 <div class="nav-brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
                 <span class="nav-brand-text">Oki<span>Doki</span></span>
             </a>
@@ -417,20 +406,12 @@
                             </ul>
                         </li>
                     {% else %}
-<<<<<<< HEAD
-                        <li class="nav-item">
-=======
                         <li class="nav-item me-0">
->>>>>>> main
                             <a class="nav-btn nav-btn-login" href="{% url 'login' %}">
                                 <i class="bi bi-box-arrow-in-right"></i> Sign In
                             </a>
                         </li>
-<<<<<<< HEAD
-                        <li class="nav-item">
-=======
                         <li class="nav-item me-0">
->>>>>>> main
                             <a class="nav-btn nav-btn-register" href="{% url 'register' %}">
                                 <i class="bi bi-person-plus-fill"></i> Get Started
                             </a>
@@ -472,8 +453,6 @@
                 nav.classList.toggle('nav-scrolled', window.scrollY > 40);
             });
         }
-<<<<<<< HEAD
-=======
 
         // Mobile dashboard sidebar toggle
         document.addEventListener('DOMContentLoaded', function () {
@@ -504,7 +483,6 @@
                 parent.insertBefore(toggleButton, card);
             });
         });
->>>>>>> main
     </script>
     {% block extra_js %}{% endblock %}
 </body>
