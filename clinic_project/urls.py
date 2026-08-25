@@ -13,10 +13,13 @@ urlpatterns = [
     # Django admin panel
     path('admin/', admin.site.urls),
 
+<<<<<<< HEAD
     # Django-allauth routes (Google OAuth, login, logout, etc.)
     # Provides: /accounts/login/, /accounts/logout/, /accounts/google/login/callback/, etc.
     path('accounts/', include('allauth.urls')),
 
+=======
+>>>>>>> main
     # All appointment system URLs
     path('', include('appointments.urls')),
 ]

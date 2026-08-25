@@ -382,19 +382,19 @@ class Appointment(models.Model):
         default=30,
         help_text='Minutes before appointment to send reminder email (default: 30 min)',
     )
-    
+
     # Track if reminder email has been sent
     reminder_sent_at = models.DateTimeField(
         blank=True, null=True,
         help_text='Timestamp when reminder email was sent',
     )
-    
+
     # Celery task ID for the scheduled reminder
     scheduled_task_id = models.CharField(
         max_length=255, blank=True, null=True,
         help_text='Celery task ID for the scheduled reminder task',
     )
-    
+
     # Track if "next in queue" notification was sent
     next_in_queue_notification_sent = models.BooleanField(
         default=False,
@@ -411,7 +411,7 @@ class Appointment(models.Model):
         """
         from datetime import datetime
         from django.utils import timezone
-        
+
         if self.appointment_time:
             naive_dt = datetime.combine(self.date, self.appointment_time)
             # Make it timezone-aware (Asia/Manila)
@@ -424,13 +424,11 @@ class Appointment(models.Model):
         This is: appointment_datetime - reminder_interval_minutes
         """
         from datetime import timedelta
-        from django.utils import timezone
-        
+
         appt_datetime = self.get_appointment_datetime()
         if appt_datetime:
             return appt_datetime - timedelta(minutes=self.reminder_interval_minutes)
         return None
-
     def save(self, *args, **kwargs):
         # Auto-generate queue number when confirmed
         # Queue numbers are doctor-specific and ordered by appointment time
