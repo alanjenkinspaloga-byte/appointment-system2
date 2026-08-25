@@ -57,6 +57,13 @@
             flex-shrink: 0;
             box-shadow: 0 2px 10px rgba(26,86,219,.45);
         }
+        .nav-logo {
+            width: 34px;
+            height: 34px;
+            object-fit: contain;
+            border-radius: 9px;
+            flex-shrink: 0;
+        }
         .nav-brand-text {
             font-size: 1.22rem;
             font-weight: 800;
@@ -366,7 +373,7 @@
     <nav class="navbar navbar-expand-lg" id="mainNav">
         <div class="container-fluid px-3 px-lg-3">
             <a class="nav-brand navbar-brand ms-0" href="{% url 'home' %}">
-                <div class="nav-brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+                <img src="{% static 'images/logo.jfif' %}" alt="OkiDoki logo" class="nav-logo">
                 <span class="nav-brand-text">Oki<span>Doki</span></span>
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="color:rgba(255,255,255,.7)">
