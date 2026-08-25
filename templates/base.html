@@ -29,6 +29,11 @@
             transition: box-shadow .3s, background .3s;
             font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
         }
+        #mainNav .container,
+        #mainNav .container-fluid {
+            padding-left: 1.1rem;
+            padding-right: 1.1rem;
+        }
         #mainNav.nav-scrolled {
             background: rgba(6,14,31,.97);
             box-shadow: 0 4px 24px rgba(0,0,0,.35);
@@ -168,6 +173,46 @@
             background: #060e1f;
             border-top: 1px solid rgba(255,255,255,.06);
             font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        /* ══ MOBILE DASHBOARD MENU TOGGLE ══ */
+        .dash-sidebar-shell {
+            position: relative;
+        }
+        .dash-mobile-menu-toggle {
+            display: none;
+        }
+        @media (max-width: 767.98px) {
+            .dash-mobile-menu-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: .5rem;
+                width: 100%;
+                margin-bottom: .85rem;
+                padding: .8rem 1rem;
+                border: 1px solid rgba(255,255,255,.08);
+                border-radius: 14px;
+                background: linear-gradient(135deg, #0d1b2a, #162c4d);
+                color: #fff;
+                box-shadow: 0 8px 24px rgba(15,23,42,.18);
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                font-size: .9rem;
+                font-weight: 700;
+                letter-spacing: .01em;
+            }
+            .dash-mobile-menu-toggle i {
+                font-size: 1.2rem;
+            }
+            .dash-sidebar-shell .dash-sidebar-card {
+                display: none;
+            }
+            .dash-sidebar-shell.is-open .dash-sidebar-card {
+                display: block;
+            }
+            .dash-mobile-menu-toggle[aria-expanded="true"] {
+                background: linear-gradient(135deg, #1d4ed8, #4f46e5);
+            }
         }
 
         /* ══ OKIDOKI DASHBOARD DESIGN SYSTEM (shared across all panel pages) ══ */
@@ -319,8 +364,8 @@
     <!-- Navbar -->
     {% block navbar %}
     <nav class="navbar navbar-expand-lg" id="mainNav">
-        <div class="container">
-            <a class="nav-brand navbar-brand" href="{% url 'home' %}">
+        <div class="container-fluid px-3 px-lg-3">
+            <a class="nav-brand navbar-brand ms-0" href="{% url 'home' %}">
                 <div class="nav-brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
                 <span class="nav-brand-text">Oki<span>Doki</span></span>
             </a>
@@ -361,12 +406,12 @@
                             </ul>
                         </li>
                     {% else %}
-                        <li class="nav-item">
+                        <li class="nav-item me-0">
                             <a class="nav-btn nav-btn-login" href="{% url 'login' %}">
                                 <i class="bi bi-box-arrow-in-right"></i> Sign In
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item me-0">
                             <a class="nav-btn nav-btn-register" href="{% url 'register' %}">
                                 <i class="bi bi-person-plus-fill"></i> Get Started
                             </a>
@@ -408,6 +453,36 @@
                 nav.classList.toggle('nav-scrolled', window.scrollY > 40);
             });
         }
+
+        // Mobile dashboard sidebar toggle
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.dash-sidebar-card').forEach(function (card) {
+                const parent = card.parentElement;
+                if (!parent || parent.classList.contains('dash-sidebar-shell')) {
+                    return;
+                }
+
+                const existingToggle = parent.querySelector('.dash-mobile-menu-toggle');
+                if (existingToggle) {
+                    return;
+                }
+
+                const toggleButton = document.createElement('button');
+                toggleButton.type = 'button';
+                toggleButton.className = 'dash-mobile-menu-toggle';
+                toggleButton.setAttribute('aria-label', 'Toggle dashboard menu');
+                toggleButton.setAttribute('aria-expanded', 'false');
+                toggleButton.innerHTML = '<i class="bi bi-list"></i> Menu';
+
+                toggleButton.addEventListener('click', function () {
+                    const isOpen = parent.classList.toggle('is-open');
+                    toggleButton.setAttribute('aria-expanded', String(isOpen));
+                });
+
+                parent.classList.add('dash-sidebar-shell');
+                parent.insertBefore(toggleButton, card);
+            });
+        });
     </script>
     {% block extra_js %}{% endblock %}
 </body>
